@@ -1,0 +1,5 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+/* Force Tailwind v4 to use class-based dark mode instead of media queries */
+@custom-variant dark (&:is(.dark *));
