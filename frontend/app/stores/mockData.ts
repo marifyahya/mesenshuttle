@@ -75,5 +75,47 @@ export const useMockDataStore = defineStore('mockData', {
         return { ...schedule, route, fleet, availableSeats }
       }
     }
+  },
+  actions: {
+    // Routes
+    addRoute(route: any) {
+      const id = Math.max(0, ...this.routes.map(r => r.id)) + 1
+      this.routes.push({ ...route, id })
+    },
+    updateRoute(id: number, route: any) {
+      const index = this.routes.findIndex(r => r.id === id)
+      if (index !== -1) this.routes[index] = { ...this.routes[index], ...route }
+    },
+    deleteRoute(id: number) {
+      this.routes = this.routes.filter(r => r.id !== id)
+      // Cascade delete schedules for this route
+      this.schedules = this.schedules.filter(s => s.routeId !== id)
+    },
+    // Fleets
+    addFleet(fleet: any) {
+      const id = Math.max(0, ...this.fleets.map(f => f.id)) + 1
+      this.fleets.push({ ...fleet, id })
+    },
+    updateFleet(id: number, fleet: any) {
+      const index = this.fleets.findIndex(f => f.id === id)
+      if (index !== -1) this.fleets[index] = { ...this.fleets[index], ...fleet }
+    },
+    deleteFleet(id: number) {
+      this.fleets = this.fleets.filter(f => f.id !== id)
+      // Cascade delete schedules for this fleet
+      this.schedules = this.schedules.filter(s => s.fleetId !== id)
+    },
+    // Schedules
+    addSchedule(schedule: any) {
+      const id = Math.max(0, ...this.schedules.map(s => s.id)) + 1
+      this.schedules.push({ ...schedule, id })
+    },
+    updateSchedule(id: number, schedule: any) {
+      const index = this.schedules.findIndex(s => s.id === id)
+      if (index !== -1) this.schedules[index] = { ...this.schedules[index], ...schedule }
+    },
+    deleteSchedule(id: number) {
+      this.schedules = this.schedules.filter(s => s.id !== id)
+    }
   }
 })
