@@ -1,38 +1,43 @@
-# Product Requirements Document (PRD): Aplikasi Pemesanan Shuttle
+# Product Requirements Document (PRD): Shuttle Booking Application
 
 ## 1. Executive Summary
-Aplikasi berbasis web untuk pemesanan tiket shuttle yang memungkinkan pengguna memesan tiket dengan cepat tanpa perlu melakukan registrasi akun (guest checkout). Sistem akan menggunakan alamat email sebagai penanda unik pengguna. Aplikasi ini dilengkapi dengan fitur pemilihan kursi interaktif, integrasi pembayaran otomatis, dan sistem *concurrency* yang tangguh untuk mencegah pemesanan ganda (double-booking). Terdapat juga portal Admin untuk mengelola operasional seperti rute dan jadwal.
+A web-based application for shuttle ticket booking that allows users to book tickets quickly without needing to register an account (guest checkout). The system will use the email address as the unique user identifier. This application is equipped with an interactive seat selection feature, automated payment integration, and a robust concurrency system to prevent double-booking. There is also an Admin portal to manage operational data such as routes and schedules.
 
 ## 2. Tech Stack
 *   **Backend:** Golang
-*   **Frontend:** Vue.js
-*   **Database Persistent:** MySQL
-*   **Database In-Memory:** Redis
+*   **Frontend:** Nuxt.js 3 (Vue framework)
+*   **Persistent Database:** MySQL
+*   **In-Memory Database:** Redis
 *   **Payment Gateway:** Xendit
-*   **Notifikasi:** Email (via SMTP)
+*   **Notifications:** Email (via SMTP)
 
 ## 3. User Personas
-1.  **Customer (Penumpang):** Ingin memesan tiket shuttle dengan cepat, memilih kursi, dan membayar tanpa hambatan registrasi.
-2.  **Admin:** Staf operasional yang mengatur rute (trayek), armada shuttle, dan jadwal keberangkatan.
+1.  **Customer (Passenger):** Wants to book a shuttle ticket quickly, select a seat, and pay without the hassle of registration.
+2.  **Admin:** Operational staff who manage routes, shuttle fleets, and departure schedules.
 
-## 4. Alur Pengguna (User Flows)
+## 4. User Flows
 
-### 4.1. Alur Customer (Tanpa Registrasi)
-1.  **Pencarian (Search):** Pengguna mencari jadwal keberangkatan berdasarkan Pool Asal dan Pool Tujuan (dari daftar rute yang telah ditentukan oleh Admin), beserta tanggal keberangkatan.
-2.  **Pemilihan Jadwal:** Sistem menampilkan daftar jadwal beserta tipe shuttle (**Premium** atau **Standart**). Pengguna memilih jadwal yang sesuai.
-3.  **Pemilihan Kursi (Seat Map):** Pengguna melihat peta/layout kursi yang tersedia dan memilih kursi yang diinginkan.
-4.  **Input Data Pemesan:** Pengguna memasukkan alamat Email (sebagai ID) dan data diri dasar (Nama, No HP).
-5.  **Penguncian Kursi (Lock Seat):** Sistem melakukan *lock* sementara pada kursi yang dipilih menggunakan **Redis** agar tidak bisa dipilih oleh orang lain.
-6.  **Pembayaran:** Sistem men-generate invoice via **Xendit** dan mengarahkan pengguna ke halaman pembayaran.
-7.  **Konfirmasi:** Setelah Xendit mengirimkan *webhook* pembayaran berhasil, backend akan mengubah status tiket menjadi `PAID`.
-8.  **Notifikasi:** E-Ticket dan bukti pembayaran dikirimkan ke email pengguna.
+### 4.1. Customer Flow (No Registration)
+1.  **Search:** User searches for departure schedules based on Origin Pool and Destination Pool (from a list of routes defined by the Admin), along with the departure date.
+2.  **Schedule Selection:** System displays a list of schedules along with the shuttle type (**Premium** or **Reguler**). User selects a suitable schedule.
+3.  **Seat Selection (Seat Map):** User views the available seat layout/map and selects the desired seat.
+4.  **Passenger Data Input:** User inputs their Email address (as ID) and basic personal data (Name, Phone Number).
+5.  **Seat Locking:** System places a temporary lock on the selected seat using **Redis** so it cannot be selected by others.
+6.  **Payment:** System generates an invoice via **Xendit** and redirects the user to the payment page.
+7.  **Confirmation:** After Xendit sends a successful payment webhook, the backend will update the ticket status to `PAID`.
+8.  **Notification:** E-Ticket and payment receipt are sent to the user's email.
 
-### 4.2. Alur Admin
-1.  **Manajemen Trayek (Rute):** Admin dapat membuat, mengubah, dan menghapus rute perjalanan (Contoh: Jakarta - Bandung).
-2.  **Manajemen Armada & Tipe Shuttle:** Admin mendefinisikan tipe armada beserta kapasitasnya. Layout kursi bersifat statis: **Standart (konfigurasi 1-2)** dan **Premium (konfigurasi 1-1)**.
-3.  **Manajemen Jadwal:** Admin membuat jadwal keberangkatan dengan memasangkan Trayek, Armada, waktu keberangkatan, dan harga tiket.
+### 4.2. Admin Flow
+1.  **Route Management:** Admin can create, update, and delete routes (Example: Jakarta - Bandung).
+2.  **Fleet & Shuttle Type Management:** Admin defines fleet types along with their capacities. Seat layouts are static: **Reguler (1-2 configuration)** and **Premium (1-1 configuration)**.
+3.  **Schedule Management:** Admin creates departure schedules by pairing a Route, Fleet, departure time, and ticket price.
 
-## 5. Requirement Teknis & Concurrency (Race Condition)
-*   **Redis Pool / Lua Scripting:** Saat beberapa pengguna mencoba memilih kursi yang sama di waktu yang bersamaan (*race condition*), backend Golang akan menggunakan Redis Lua Script. Operasi pengecekan ketersediaan kursi dan penguncian (*set with expiry*) akan dilakukan secara **atomik**. Ini memastikan secara absolut tidak ada dua pengguna yang mendapatkan kursi yang sama.
-*   **Lock Expiration:** Jika pengguna tidak menyelesaikan pembayaran Xendit dalam batas waktu **30 menit**, Redis key akan otomatis kedaluwarsa (*expired*), dan kursi akan kembali berstatus `Available`.
-*   **Webhook Handling:** Endpoint Golang untuk Xendit akan dibuat seaman mungkin (verifikasi token/signature) dan dapat memproses status *PAID* atau *EXPIRED* dengan cepat.
+## 5. Technical Requirements & Concurrency (Race Condition)
+*   **Redis Pool / Lua Scripting:** When multiple users try to select the same seat at the same time (race condition), the Golang backend will use Redis Lua Scripts. The operations of checking seat availability and locking (set with expiry) will be executed **atomically**. This guarantees absolutely that no two users will get the same seat.
+*   **Lock Expiration:** If the user does not complete the Xendit payment within the **30-minute** time limit, the Redis key will automatically expire, and the seat will return to `Available` status.
+*   **Webhook Handling:** The Golang endpoint for Xendit will be made as secure as possible (verifying token/signature) and can quickly process `PAID` or `EXPIRED` statuses.
+
+## 6. Out of Scope (Phase 1)
+To prevent feature creep and ensure a successful initial launch, the following features are explicitly out of scope for Phase 1:
+1.  **Admin User Management (CRUD):** There will be no UI for creating, updating, or deleting Admin staff accounts. The primary admin account will be provisioned directly via a Database Seeder.
+2.  **Track Booking Status Page:** There will be no public page for guests to track their booking status using a Booking Code. Users will rely entirely on email notifications (E-Ticket and Invoice) to know the status of their order.

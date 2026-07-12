@@ -1,30 +1,30 @@
 # Backend Architecture & Implementation Plan
 
-Dokumen ini menjelaskan rancangan arsitektur, database, dan alur API untuk backend **MesenShuttle** yang dibangun dengan **Golang**.
+This document explains the architecture design, database schema, and API flow for the **MesenShuttle** backend built with **Golang**.
 
-## 1. Arsitektur Sistem (System Architecture)
+## 1. System Architecture
 
-Sistem menggunakan **Golang (Gin Router)** sebagai backend API utama. Data operasional disimpan di **MySQL**, sedangkan **Redis** digunakan khusus untuk menangani *concurrency* (mencegah *double-booking*) melalui mekanisme *locking* yang cepat.
+The system uses **Golang (Gin Router)** as the main backend API. Operational data is stored in **MySQL**, while **Redis** is used specifically to handle concurrency (preventing double-booking) through a fast locking mechanism.
 
 ```mermaid
 graph TD
-    Client[Frontend Vue.js] -->|HTTP REST API| Gin[Golang Gin Router]
-    
+    Client[Frontend Nuxt.js] -->|HTTP REST API| Gin[Golang Gin Router]
+
     subgraph Backend System
         Gin -->|Lock Seats TTL 30m| Redis[(Redis In-Memory)]
         Gin -->|CRUD & Master Data| DB[(MySQL Database)]
         Gin -->|Enqueue Email Task| AsynqQueue[(Redis Task Queue)]
         AsynqWorker[Background Worker] -->|Fetch Tasks| AsynqQueue
     end
-    
+
     Gin -->|Create Invoice| Xendit[Xendit Payment Gateway]
     Xendit -->|Webhook Notification| Gin
     AsynqWorker -->|Send ETicket with Auto Retry| SMTP[Email SMTP]
 ```
 
-## 2. Skema Database (ER Diagram)
+## 2. Database Schema (ER Diagram)
 
-Database MySQL digunakan untuk menyimpan data persisten seperti Rute, Armada, Jadwal, dan Transaksi.
+The MySQL database is used to store persistent data such as Routes, Fleets, Schedules, and Bookings.
 
 ```mermaid
 erDiagram
@@ -82,9 +82,9 @@ erDiagram
     }
 ```
 
-## 3. Alur Concurrency & Checkout (Sequence Diagram)
+## 3. Concurrency & Checkout Flow (Sequence Diagram)
 
-Ini adalah alur paling kritis pada backend untuk memastikan tidak ada 2 orang yang mem-booking kursi yang sama di waktu bersamaan (Race Condition).
+This is the most critical flow in the backend to ensure that no two people book the same seat at the same time (Race Condition).
 
 ```mermaid
 sequenceDiagram
@@ -95,14 +95,14 @@ sequenceDiagram
     participant Xendit as Xendit Gateway
 
     User->>API: POST /api/checkout (schedule_id, seats, user_data)
-    
-    Note over API,Redis: Lua Script mengeksekusi Check & Lock secara Atomik
-    API->>Redis: EVAL Lua Script (Check ketersediaan & Lock seats)
-    
-    alt Jika Kursi Sudah Dipesan/Di-Lock Orang Lain
+
+    Note over API,Redis: Lua Script executes Check & Lock atomically
+    API->>Redis: EVAL Lua Script (Check availability & Lock seats)
+
+    alt If Seats are Booked/Locked by someone else
         Redis-->>API: Error: Seat Unavailable
-        API-->>User: 409 Conflict (Kursi sudah diambil)
-    else Jika Kursi Tersedia
+        API-->>User: 409 Conflict (Seats already taken)
+    else If Seats are Available
         Redis-->>API: Success (Locked for 30 mins)
         API->>DB: Insert Booking (Status: PENDING)
         API->>DB: Insert Booking Seats
@@ -113,42 +113,43 @@ sequenceDiagram
     end
 ```
 
-**Catatan Keputusan (Auto-Expire Strategy):**
-> 1. **User Facing:** Pelanggan diinformasikan bahwa batas waktu pembayaran adalah **30 menit**.
-> 2. **Xendit (Gateway):** Invoice Xendit diset agar kedaluwarsa tepat dalam **30 menit** setelah dibuat.
-> 3. **DB Internal (Asynq Delayed Task):** Backend mengirimkan tugas tertunda (Delayed Task) ke Redis Asynq untuk mengecek dan mengubah status pesanan menjadi `EXPIRED` di menit ke-**35**. Penambahan jeda 5 menit ini adalah *buffer* waktu agar jika Xendit telat mengirim webhook "PAID", pesanan tidak telanjur dibatalkan oleh DB kita.
-## 4. Spesifikasi API Utama
+**Decision Notes (Auto-Expire Strategy):**
+> 1. **User Facing:** Customers are informed that the payment time limit is **30 minutes**.
+> 2. **Xendit (Gateway):** The Xendit invoice is set to expire exactly **30 minutes** after creation.
+> 3. **Internal DB (Asynq Delayed Task):** The backend sends a delayed task to the Redis Asynq queue to check and update the booking status to `EXPIRED` at the **35th** minute. The additional 5-minute buffer ensures that if Xendit is late in sending the "PAID" webhook, the booking is not prematurely canceled by our DB.
+
+## 4. Core API Specifications
 
 ### 4.1. Admin APIs (Master Data & Auth)
-- **`POST /api/admin/login`** : Autentikasi email & password, mengembalikan JWT.
-- **`GET /api/admin/routes`** : Mendapatkan daftar pool asal dan tujuan (Protected by JWT).
-- **`POST /api/admin/routes`** : Menambahkan rute baru (Protected by JWT).
-- **`GET /api/admin/fleets`** : Mendapatkan daftar armada (Protected by JWT).
-- **`POST /api/admin/fleets`** : Menambahkan armada baru (Protected by JWT).
-- **`GET /api/admin/schedules`** : Mendapatkan jadwal keberangkatan (Protected by JWT).
-- **`POST /api/admin/schedules`** : Menambahkan jadwal baru (Protected by JWT).
+- **`POST /api/admin/login`** : Authenticate email & password, return JWT.
+- **`GET /api/admin/routes`** : Get list of origin and destination pools (Protected by JWT).
+- **`POST /api/admin/routes`** : Add a new route (Protected by JWT).
+- **`GET /api/admin/fleets`** : Get list of fleets (Protected by JWT).
+- **`POST /api/admin/fleets`** : Add a new fleet (Protected by JWT).
+- **`GET /api/admin/schedules`** : Get departure schedules (Protected by JWT).
+- **`POST /api/admin/schedules`** : Add a new schedule (Protected by JWT).
 
-### 4.2. Customer APIs (Pemesanan)
+### 4.2. Customer APIs (Booking)
 - **`GET /api/schedules`**
   - *Query Params*: `origin`, `destination`, `date`.
-  - *Response*: Daftar jadwal yang cocok beserta sisa kursi.
+  - *Response*: List of matching schedules along with remaining seats.
 - **`GET /api/schedules/:id/seats`**
-  - *Response*: Daftar kursi dengan status `Available`, `Locked` (dari Redis), atau `Booked` (dari DB).
+  - *Response*: List of seats with status `Available`, `Locked` (from Redis), or `Booked` (from DB).
 - **`POST /api/checkout`**
   - *Payload*: `{ schedule_id, seats: ["1", "2"], name, email, phone }`
   - *Response*: `{ booking_code, payment_url }`
 - **`POST /api/webhooks/payments`**
-  - *Payload*: Notifikasi status pembayaran dari Payment Gateway (misal Xendit) (`PAID` / `EXPIRED`).
-  - *Action*: Update status di DB, kirim email tiket jika `PAID`, rilis lock Redis.
+  - *Payload*: Payment status notification from Payment Gateway (e.g., Xendit) (`PAID` / `EXPIRED`).
+  - *Action*: Update status in DB, send e-ticket email if `PAID`, release Redis lock.
 
-## 5. Tahapan Eksekusi Backend (User Stories)
+## 5. Backend Execution Phases (User Stories)
 
-**Phase 1: Inisialisasi & Setup Lingkungan**
+**Phase 1: Initialization & Environment Setup**
 - `[x]` As a BE, I want to setup project Golang (`mesenshuttle-backend`).
 - `[x]` As a BE, I want to setup Database MySQL and GORM Auto-migration.
 - `[x]` As a BE, I want to setup Redis connection.
 
-**Phase 2: Pengembangan API Admin (Master Data & Auth)**
+**Phase 2: Admin API Development (Master Data & Auth)**
 - `[x]` As a FE, I want to have endpoint to login and receive JWT token.
 - `[ ]` As a FE, I want to have endpoint to get list of Routes (`GET /api/admin/routes`).
 - `[ ]` As a FE, I want to have endpoint to create a new Route (`POST /api/admin/routes`).
@@ -163,15 +164,15 @@ sequenceDiagram
 - `[ ]` As a FE, I want to have endpoint to update a Schedule (`PUT /api/admin/schedules/:id`).
 - `[ ]` As a FE, I want to have endpoint to delete a Schedule (`DELETE /api/admin/schedules/:id`).
 
-**Phase 3: API Pencarian & Peta Kursi (Seat Map)**
+**Phase 3: Search & Seat Map API**
 - `[ ]` As a FE, I want to have endpoint to search schedules based on origin, destination, and date.
 - `[ ]` As a FE, I want to have endpoint to view seat map that combines booked status (DB) and locked status (Redis).
 
-**Phase 4: Algoritma Concurrency (Checkout)**
+**Phase 4: Concurrency Algorithm (Checkout)**
 - `[ ]` As a FE, I want to have endpoint to checkout and lock selected seats.
 - `[ ]` As a BE, I want to execute Redis Lua Script during checkout to prevent double-booking atomically.
 
-**Phase 5: Gateway Pembayaran & Notifikasi**
+**Phase 5: Payment Gateway & Notifications**
 - `[ ]` As a BE, I want to integrate Xendit to generate invoice URL during checkout.
 - `[ ]` As a BE, I want to have a generic endpoint to receive payment webhooks (`/api/webhooks/payments`).
 - `[ ]` As a BE, I want to enqueue E-Ticket sending task to Redis Task Queue (Asynq) for reliable background email processing.

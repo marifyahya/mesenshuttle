@@ -26,7 +26,12 @@ In development mode, the source code is mounted directly into the Docker contain
 **Steps:**
 
 1. **Setup Environment Variables**
-   Copy the example Docker override file:
+   First, setup the `.env` files for the backend and frontend:
+   ```bash
+   cp backend/.env.example backend/.env
+   cp frontend/.env.example frontend/.env
+   ```
+   Then, copy the example Docker override file:
    ```bash
    cp docker-compose.override.yml.example docker-compose.override.yml
    ```
@@ -43,6 +48,25 @@ In development mode, the source code is mounted directly into the Docker contain
    - Backend API: [http://localhost:8081](http://localhost:8081)
    - MySQL: `localhost:3306` (Use DBeaver / TablePlus to access your local database)
    - Redis: `localhost:6380`
+
+### Running Locally (Without Docker)
+If you prefer to run the applications natively without Docker, make sure you have a local MySQL and Redis instance running, then follow these steps:
+
+**Backend:**
+```bash
+cd backend
+cp .env.example .env # Ensure DB and Redis credentials match your local setup
+go mod tidy
+go run ./cmd/api
+```
+
+**Frontend:**
+```bash
+cd frontend
+cp .env.example .env
+npm install
+npm run dev
+```
 
 **Development Note:**
 Whenever you install new packages via `npm install` or add Go modules via `go get`, you do not need to rebuild the containers since the volumes are mounted.

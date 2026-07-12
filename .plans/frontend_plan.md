@@ -33,14 +33,14 @@ These pages will allow a guest user to browse schedules, select seats, and compl
 - **Purpose**: Displays available shuttle schedules based on search criteria.
 - **Components**:
   - Search summary (Origin, Destination, Date).
-  - List of available schedules (Cards/List view): Departure/Arrival Time, Shuttle Type (Premium or Standard), Price, "Select Seat" Button.
+  - List of available schedules (Cards/List view): Departure/Arrival Time, Shuttle Type (Premium or Reguler), Price, "Select Seat" Button.
 
 ### 2.3 Seat Selection Page (`/seat-selection/:scheduleId`)
 - **Purpose**: Interactive seat map for the user to choose their seat.
 - **Components**:
   - Shuttle Information (Route, Time, Type).
   - Interactive Seat Map:
-    - **Standard Shuttle**: 1-2 configuration (e.g., [Seat] - Aisle - [Seat][Seat]).
+    - **Reguler Shuttle**: 1-2 configuration (e.g., [Seat] - Aisle - [Seat][Seat]).
     - **Premium Shuttle**: 1-1 configuration (e.g., [Seat] - Aisle - [Seat]).
     - Legend: Available, Selected, Unavailable (mock locked seats).
   - "Continue to Passenger Details" Button.
@@ -78,7 +78,7 @@ These pages are for the operational staff to manage the system.
 
 ### 3.4 Fleet Management (`/admin/fleets`)
 - **Purpose**: Manage shuttles and their types.
-- **Components**: Data table of fleets (Shuttle Name, Type: Premium/Standard, Capacity), "Add New Shuttle" Modal/Form.
+- **Components**: Data table of fleets (Shuttle Name, Type: Premium/Reguler, Capacity), "Add New Shuttle" Modal/Form.
 
 ### 3.5 Schedule Management (`/admin/schedules`)
 - **Purpose**: Assign fleets to routes at specific times.
@@ -101,7 +101,7 @@ These pages are for the operational staff to manage the system.
 - `[x]` **Phase 3: Customer Flow (Public)**
   - `[x]` Build Home/Search Page (`/`) with Hero and Search Form.
   - `[x]` Build Search Results Page (`/schedules`) displaying available shuttles.
-  - `[x]` Build Seat Selection Page (`/seat-selection/:id`) with interactive Standard (1-2) and Premium (1-1) layouts.
+  - `[x]` Build Seat Selection Page (`/seat-selection/:id`) with interactive Reguler (1-2) and Premium (1-1) layouts.
   - `[x]` Build Passenger Details Page (`/checkout/details`) to collect email and name.
   - `[x]` Build Mock Payment & Success Page (`/checkout/payment-success`) displaying the E-Ticket.
 
@@ -113,5 +113,5 @@ These pages are for the operational staff to manage the system.
   - `[x]` Build Schedule Management Page (`/admin/schedules`).
 
 - `[x]` **Phase 5: Review & Polish**
-  - `[x]` Ensure premium aesthetics (clean and modern design, smooth animations) untuk Public Pages.
+  - `[x]` Ensure premium aesthetics (clean and modern design, smooth animations) for Public Pages.
   - `[x]` Verify responsive design across all pages.
