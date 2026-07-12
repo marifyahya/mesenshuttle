@@ -13,11 +13,13 @@ graph TD
     subgraph Backend System
         Gin -->|Lock Seats TTL 30m| Redis[(Redis In-Memory)]
         Gin -->|CRUD & Master Data| DB[(MySQL Database)]
+        Gin -->|Enqueue Email Task| AsynqQueue[(Redis Task Queue)]
+        AsynqWorker[Background Worker] -->|Fetch Tasks| AsynqQueue
     end
     
-    Gin <-->|Create Invoice| Xendit[Xendit Payment Gateway]
+    Gin -->|Create Invoice| Xendit[Xendit Payment Gateway]
     Xendit -->|Webhook Notification| Gin
-    Gin -->|Send E-Ticket| SMTP[Email SMTP]
+    AsynqWorker -->|Send ETicket with Auto Retry| SMTP[Email SMTP]
 ```
 
 ## 2. Skema Database (ER Diagram)
@@ -33,48 +35,50 @@ erDiagram
 
     ADMINS {
         uuid id PK
-        string name
-        string email
-        string password_hash
+        varchar(100) name
+        varchar(100) email "UNIQUE, INDEX"
+        varchar(255) password_hash
         datetime created_at
     }
     ROUTES {
         uuid id PK
-        string origin_pool
-        string destination_pool
+        varchar(100) origin_city "INDEX"
+        varchar(150) origin_pool
+        varchar(100) destination_city "INDEX"
+        varchar(150) destination_pool
         datetime created_at
     }
     FLEETS {
         uuid id PK
-        string name
-        string type "Premium/Reguler"
+        varchar(100) name
+        varchar(50) type "Premium/Reguler"
         int capacity
         datetime created_at
     }
     SCHEDULES {
         uuid id PK
-        uuid route_id FK
-        uuid fleet_id FK
-        datetime departure_time
+        uuid route_id FK "INDEX"
+        uuid fleet_id FK "INDEX"
+        datetime departure_time "INDEX"
         int price
         datetime created_at
     }
     BOOKINGS {
         uuid id PK
-        uuid schedule_id FK
-        string booking_code
-        string email
-        string name
-        string phone
-        string status "PENDING, PAID, EXPIRED"
+        uuid schedule_id FK "INDEX"
+        varchar(20) booking_code "UNIQUE, INDEX"
+        varchar(100) email "INDEX"
+        varchar(100) name
+        varchar(20) phone "INDEX"
+        tinyint status "0:PENDING, 1:PAID, 2:EXPIRED, INDEX"
         int total_price
-        string payment_url
-        datetime created_at
+        varchar(255) payment_url
+        datetime created_at "INDEX"
     }
     BOOKING_SEATS {
         uuid id PK
-        uuid booking_id FK
-        string seat_number
+        uuid booking_id FK "INDEX"
+        varchar(10) seat_number
     }
 ```
 
@@ -92,7 +96,7 @@ sequenceDiagram
 
     User->>API: POST /api/checkout (schedule_id, seats, user_data)
     
-    note over API,Redis: Lua Script mengeksekusi Check & Lock secara Atomik
+    Note over API,Redis: Lua Script mengeksekusi Check & Lock secara Atomik
     API->>Redis: EVAL Lua Script (Check ketersediaan & Lock seats)
     
     alt Jika Kursi Sudah Dipesan/Di-Lock Orang Lain
@@ -109,6 +113,10 @@ sequenceDiagram
     end
 ```
 
+**Catatan Keputusan (Auto-Expire Strategy):**
+> 1. **User Facing:** Pelanggan diinformasikan bahwa batas waktu pembayaran adalah **30 menit**.
+> 2. **Xendit (Gateway):** Invoice Xendit diset agar kedaluwarsa tepat dalam **30 menit** setelah dibuat.
+> 3. **DB Internal (Asynq Delayed Task):** Backend mengirimkan tugas tertunda (Delayed Task) ke Redis Asynq untuk mengecek dan mengubah status pesanan menjadi `EXPIRED` di menit ke-**35**. Penambahan jeda 5 menit ini adalah *buffer* waktu agar jika Xendit telat mengirim webhook "PAID", pesanan tidak telanjur dibatalkan oleh DB kita.
 ## 4. Spesifikasi API Utama
 
 ### 4.1. Admin APIs (Master Data & Auth)
@@ -166,4 +174,4 @@ sequenceDiagram
 **Phase 5: Gateway Pembayaran & Notifikasi**
 - `[ ]` As a BE, I want to integrate Xendit to generate invoice URL during checkout.
 - `[ ]` As a BE, I want to have a generic endpoint to receive payment webhooks (`/api/webhooks/payments`).
-- `[ ]` As a BE, I want to send E-Ticket via SMTP Email when booking status becomes PAID.
+- `[ ]` As a BE, I want to enqueue E-Ticket sending task to Redis Task Queue (Asynq) for reliable background email processing.
