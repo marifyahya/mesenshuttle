@@ -4,7 +4,7 @@
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div>
         <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Good Morning, Admin 👋</h1>
-        <p class="text-gray-500 mt-1">Here's what's happening with MesenBus today, {{ currentDate }}.</p>
+        <p class="text-gray-500 mt-1">Here's what's happening with MesenShuttle today, {{ currentDate }}.</p>
       </div>
       <div class="flex items-center gap-3">
         <UButton color="neutral" variant="solid" icon="i-lucide-calendar" size="md">
