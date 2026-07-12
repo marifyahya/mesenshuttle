@@ -16,6 +16,7 @@ type Config struct {
 	RedisHost     string
 	RedisPort     string
 	RedisPassword string
+	JWTSecret     string
 	Port          string
 }
 
@@ -39,6 +40,7 @@ func LoadConfig() *Config {
 		RedisHost:     os.Getenv("REDIS_HOST"),
 		RedisPort:     os.Getenv("REDIS_PORT"),
 		RedisPassword: os.Getenv("REDIS_PASSWORD"),
+		JWTSecret:     os.Getenv("JWT_SECRET"),
 		Port:          port,
 	}
 }

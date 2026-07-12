@@ -4,10 +4,12 @@ import (
 	"log"
 
 	"mesenshuttle-backend/internal/config"
+	"mesenshuttle-backend/internal/controllers"
 	"mesenshuttle-backend/internal/models"
+	"mesenshuttle-backend/internal/repositories"
+	"mesenshuttle-backend/internal/routes"
+	"mesenshuttle-backend/internal/services"
 	"mesenshuttle-backend/pkg/database"
-
-	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -27,9 +29,11 @@ func main() {
 		&models.Booking{},
 		&models.BookingSeat{},
 	)
+
 	if err != nil {
 		log.Fatalf("Failed to run migrations: %v", err)
 	}
+
 	log.Println("Auto Migration completed!")
 
 	_, err = database.InitRedis(cfg)
@@ -37,13 +41,13 @@ func main() {
 		log.Fatalf("Failed to initialize Redis: %v", err)
 	}
 
-	r := gin.Default()
+	// Dependency Injection
+	adminRepo := repositories.NewAdminRepository(db)
+	authService := services.NewAuthService(adminRepo, cfg)
+	authController := controllers.NewAuthController(authService)
 
-	r.GET("/", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "Mesenshuttle Backend is running!",
-		})
-	})
+	// Setup Router
+	r := routes.SetupRouter(authController)
 
 	log.Printf("Starting server on port %s", cfg.Port)
 	if err := r.Run(":" + cfg.Port); err != nil {

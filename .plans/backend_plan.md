@@ -149,7 +149,7 @@ sequenceDiagram
 - `[x]` As a BE, I want to setup Redis connection.
 
 **Phase 2: Pengembangan API Admin (Master Data & Auth)**
-- `[ ]` As a FE, I want to have endpoint to login and receive JWT token.
+- `[x]` As a FE, I want to have endpoint to login and receive JWT token.
 - `[ ]` As a FE, I want to have endpoint to get list of Routes (`GET /api/admin/routes`).
 - `[ ]` As a FE, I want to have endpoint to create a new Route (`POST /api/admin/routes`).
 - `[ ]` As a FE, I want to have endpoint to update a Route (`PUT /api/admin/routes/:id`).
