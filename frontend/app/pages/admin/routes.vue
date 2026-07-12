@@ -1,57 +1,46 @@
 <template>
-  <div>
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-bold text-gray-900">Manage Routes</h1>
-      <UButton color="primary" icon="i-lucide-plus" @click="openCreateModal">Add Route</UButton>
-    </div>
+  <div class="space-y-6 pb-12">
+    <!-- Header -->
+    <AdminPageHeader 
+      title="Manage Routes" 
+      description="Define and manage operational routes across cities." 
+      button-label="Add Route" 
+      button-icon="i-lucide-plus" 
+      @action="openCreateModal" 
+    />
 
-    <UCard :ui="{ body: { padding: '!p-0' } }">
-      <UTable :columns="columns" :rows="store.routes">
-        <template #actions-data="{ row }">
+    <!-- Table Card -->
+    <UCard class="ring-1 ring-gray-100 rounded-2xl shadow-sm" :ui="{ body: '!p-0' }">
+      <UTable :columns="columns" :rows="store.routes" :ui="{ td: 'whitespace-nowrap transition-colors hover:bg-gray-50/50' }">
+        <template #originCity-cell="{ row }">
+          <div class="flex flex-col">
+            <span class="font-medium text-gray-900">{{ row.original.originCity }}</span>
+            <span class="text-xs text-gray-500">Pool: {{ row.original.originPool }}</span>
+          </div>
+        </template>
+        <template #destinationCity-cell="{ row }">
+          <div class="flex flex-col">
+            <span class="font-medium text-gray-900">{{ row.original.destinationCity }}</span>
+            <span class="text-xs text-gray-500">Pool: {{ row.original.destinationPool }}</span>
+          </div>
+        </template>
+        <template #actions-cell="{ row }">
           <div class="flex gap-2">
-            <UButton size="xs" color="gray" variant="ghost" icon="i-lucide-edit" @click="openEditModal(row)" />
-            <UButton size="xs" color="red" variant="ghost" icon="i-lucide-trash" @click="deleteRoute(row.id)" />
+            <UButton size="xs" color="neutral" variant="ghost" icon="i-lucide-edit" @click="openEditModal(row.original)" />
+            <UButton size="xs" color="error" variant="ghost" icon="i-lucide-trash" @click="deleteRoute(row.original.id as number)" />
+          </div>
+        </template>
+        <template #empty-state>
+          <div class="flex flex-col items-center justify-center py-12 px-4 text-center">
+            <UIcon name="i-lucide-map-x" class="w-12 h-12 text-gray-300 mb-4" />
+            <p class="text-sm font-medium text-gray-900">No routes found</p>
+            <p class="text-sm text-gray-500 mt-1">Get started by creating a new operational route.</p>
           </div>
         </template>
       </UTable>
     </UCard>
 
-    <UModal v-model="isModalOpen">
-      <UCard :ui="{ ring: '', divide: 'divide-y divide-gray-100' }">
-        <template #header>
-          <div class="flex items-center justify-between">
-            <h3 class="text-base font-semibold leading-6 text-gray-900">
-              {{ isEditing ? 'Edit Route' : 'Add New Route' }}
-            </h3>
-            <UButton color="gray" variant="ghost" icon="i-heroicons-x-mark-20-solid" class="-my-1" @click="isModalOpen = false" />
-          </div>
-        </template>
-
-        <form @submit.prevent="saveRoute" class="space-y-4">
-          <div class="grid grid-cols-2 gap-4">
-            <UFormField label="Origin City" required>
-              <UInput v-model="form.originCity" required placeholder="e.g. Jakarta" />
-            </UFormField>
-            <UFormField label="Origin Pool" required>
-              <UInput v-model="form.originPool" required placeholder="e.g. Lebak Bulus" />
-            </UFormField>
-          </div>
-          <div class="grid grid-cols-2 gap-4">
-            <UFormField label="Destination City" required>
-              <UInput v-model="form.destinationCity" required placeholder="e.g. Bandung" />
-            </UFormField>
-            <UFormField label="Destination Pool" required>
-              <UInput v-model="form.destinationPool" required placeholder="e.g. Cihampelas" />
-            </UFormField>
-          </div>
-
-          <div class="flex justify-end gap-3 mt-6">
-            <UButton color="gray" variant="ghost" @click="isModalOpen = false">Cancel</UButton>
-            <UButton type="submit" color="primary">Save Route</UButton>
-          </div>
-        </form>
-      </UCard>
-    </UModal>
+    <AdminRouteModal v-model:open="isModalOpen" v-model:form="form" :is-editing="isEditing" @save="saveRoute" />
   </div>
 </template>
 
@@ -64,12 +53,10 @@ definePageMeta({ layout: 'admin' })
 const store = useMockDataStore()
 
 const columns = [
-  { key: 'id', label: 'ID' },
-  { key: 'originCity', label: 'Origin City' },
-  { key: 'originPool', label: 'Origin Pool' },
-  { key: 'destinationCity', label: 'Destination City' },
-  { key: 'destinationPool', label: 'Destination Pool' },
-  { key: 'actions', label: 'Actions' }
+  { accessorKey: 'id', header: 'ID' },
+  { accessorKey: 'originCity', header: 'Origin' },
+  { accessorKey: 'destinationCity', header: 'Destination' },
+  { accessorKey: 'actions', header: 'Actions' }
 ]
 
 const isModalOpen = ref(false)

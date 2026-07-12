@@ -1,61 +1,53 @@
 <template>
-  <div>
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-bold text-gray-900">Manage Fleets</h1>
-      <UButton color="primary" icon="i-lucide-plus" @click="openCreateModal">Add Fleet</UButton>
-    </div>
+  <div class="space-y-6 pb-12">
+    <!-- Header -->
+    <AdminPageHeader 
+      title="Manage Fleets" 
+      description="Monitor and manage all operational vehicles." 
+      button-label="Add Fleet" 
+      button-icon="i-lucide-plus" 
+      @action="openCreateModal" 
+    />
 
-    <UCard :ui="{ body: { padding: '!p-0' } }">
-      <UTable :columns="columns" :rows="store.fleets">
-        <template #type-data="{ row }">
-          <span 
-            class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-            :class="row.type === 'Premium' ? 'bg-amber-100 text-amber-800' : 'bg-gray-100 text-gray-800'"
-          >
-            {{ row.type }}
-          </span>
+    <!-- Table Card -->
+    <UCard class="ring-1 ring-gray-100 rounded-2xl shadow-sm" :ui="{ body: '!p-0' }">
+      <UTable :columns="columns" :rows="store.fleets" :ui="{ td: 'whitespace-nowrap transition-colors hover:bg-gray-50/50' }">
+        <template #name-cell="{ row }">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500">
+              <UIcon name="i-lucide-bus" class="w-4 h-4" />
+            </div>
+            <span class="font-medium text-gray-900">{{ row.original.name }}</span>
+          </div>
         </template>
-        <template #actions-data="{ row }">
+        <template #type-cell="{ row }">
+          <UBadge :color="row.original.type === 'Premium' ? 'warning' : 'neutral'" variant="subtle" size="sm">
+            {{ row.original.type }}
+          </UBadge>
+        </template>
+        <template #capacity-cell="{ row }">
+          <span class="text-gray-600">{{ row.original.capacity }} Seats</span>
+        </template>
+        <template #platNumber-cell="{ row }">
+          <span class="font-mono text-sm text-gray-700 bg-gray-100/80 border border-gray-200 px-2.5 py-1 rounded-md">{{ row.original.platNumber || '-' }}</span>
+        </template>
+        <template #actions-cell="{ row }">
           <div class="flex gap-2">
-            <UButton size="xs" color="gray" variant="ghost" icon="i-lucide-edit" @click="openEditModal(row)" />
-            <UButton size="xs" color="red" variant="ghost" icon="i-lucide-trash" @click="deleteFleet(row.id)" />
+            <UButton size="xs" color="neutral" variant="ghost" icon="i-lucide-edit" @click="openEditModal(row.original)" />
+            <UButton size="xs" color="error" variant="ghost" icon="i-lucide-trash" @click="deleteFleet(row.original.id as number)" />
+          </div>
+        </template>
+        <template #empty-state>
+          <div class="flex flex-col items-center justify-center py-12 px-4 text-center">
+            <UIcon name="i-lucide-bus" class="w-12 h-12 text-gray-300 mb-4" />
+            <p class="text-sm font-medium text-gray-900">No fleets found</p>
+            <p class="text-sm text-gray-500 mt-1">Get started by adding a new vehicle.</p>
           </div>
         </template>
       </UTable>
     </UCard>
 
-    <UModal v-model="isModalOpen">
-      <UCard :ui="{ ring: '', divide: 'divide-y divide-gray-100' }">
-        <template #header>
-          <div class="flex items-center justify-between">
-            <h3 class="text-base font-semibold leading-6 text-gray-900">
-              {{ isEditing ? 'Edit Fleet' : 'Add New Fleet' }}
-            </h3>
-            <UButton color="gray" variant="ghost" icon="i-heroicons-x-mark-20-solid" class="-my-1" @click="isModalOpen = false" />
-          </div>
-        </template>
-
-        <form @submit.prevent="saveFleet" class="space-y-4">
-          <UFormField label="Fleet Name" required>
-            <UInput v-model="form.name" required placeholder="e.g. MesenShuttle 08" />
-          </UFormField>
-          
-          <div class="grid grid-cols-2 gap-4">
-            <UFormField label="Fleet Type" required>
-              <USelect v-model="form.type" :options="['Reguler', 'Premium']" required />
-            </UFormField>
-            <UFormField label="Capacity (Seats)" required>
-              <UInput v-model.number="form.capacity" type="number" required min="1" max="50" />
-            </UFormField>
-          </div>
-
-          <div class="flex justify-end gap-3 mt-6">
-            <UButton color="gray" variant="ghost" @click="isModalOpen = false">Cancel</UButton>
-            <UButton type="submit" color="primary">Save Fleet</UButton>
-          </div>
-        </form>
-      </UCard>
-    </UModal>
+    <AdminFleetModal v-model:open="isModalOpen" v-model:form="form" :is-editing="isEditing" @save="saveFleet" />
   </div>
 </template>
 
@@ -68,11 +60,12 @@ definePageMeta({ layout: 'admin' })
 const store = useMockDataStore()
 
 const columns = [
-  { key: 'id', label: 'ID' },
-  { key: 'name', label: 'Fleet Name' },
-  { key: 'type', label: 'Type' },
-  { key: 'capacity', label: 'Capacity' },
-  { key: 'actions', label: 'Actions' }
+  { accessorKey: 'id', header: 'ID' },
+  { accessorKey: 'name', header: 'Fleet Name' },
+  { accessorKey: 'platNumber', header: 'Plat Number' },
+  { accessorKey: 'type', header: 'Type' },
+  { accessorKey: 'capacity', header: 'Capacity' },
+  { accessorKey: 'actions', header: 'Actions' }
 ]
 
 const isModalOpen = ref(false)
@@ -80,6 +73,7 @@ const isEditing = ref(false)
 const form = ref({
   id: 0,
   name: '',
+  platNumber: '',
   vehicle: 'Shuttle',
   type: 'Reguler',
   capacity: 12
@@ -93,7 +87,7 @@ watch(() => form.value.type, (newType) => {
 })
 
 const resetForm = () => {
-  form.value = { id: 0, name: '', vehicle: 'Shuttle', type: 'Reguler', capacity: 12 }
+  form.value = { id: 0, name: '', platNumber: '', vehicle: 'Shuttle', type: 'Reguler', capacity: 12 }
   isEditing.value = false
 }
 

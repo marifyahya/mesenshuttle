@@ -13,13 +13,13 @@ export const useMockDataStore = defineStore('mockData', {
       { id: 8, originCity: 'Jakarta', originPool: 'Lebak Bulus', destinationCity: 'Cirebon', destinationPool: 'Harjamukti' }
     ],
     fleets: [
-      { id: 1, name: 'MesenShuttle 05', vehicle: 'Shuttle', type: 'Reguler', capacity: 12 },
-      { id: 2, name: 'MesenShuttle 01', vehicle: 'Shuttle', type: 'Premium', capacity: 10 },
-      { id: 3, name: 'MesenShuttle 02', vehicle: 'Shuttle', type: 'Reguler', capacity: 12 },
-      { id: 4, name: 'MesenShuttle 06', vehicle: 'Shuttle', type: 'Premium', capacity: 10 },
-      { id: 5, name: 'MesenShuttle 07', vehicle: 'Shuttle', type: 'Reguler', capacity: 12 },
-      { id: 6, name: 'MesenShuttle 03', vehicle: 'Shuttle', type: 'Premium', capacity: 10 },
-      { id: 7, name: 'MesenShuttle 04', vehicle: 'Shuttle', type: 'Reguler', capacity: 12 }
+      { id: 1, name: 'MesenShuttle 05', vehicle: 'Shuttle', type: 'Reguler', capacity: 12, platNumber: 'B 1234 ABC' },
+      { id: 2, name: 'MesenShuttle 01', vehicle: 'Shuttle', type: 'Premium', capacity: 10, platNumber: 'B 5678 DEF' },
+      { id: 3, name: 'MesenShuttle 02', vehicle: 'Shuttle', type: 'Reguler', capacity: 12, platNumber: 'B 9012 GHI' },
+      { id: 4, name: 'MesenShuttle 06', vehicle: 'Shuttle', type: 'Premium', capacity: 10, platNumber: 'B 3456 JKL' },
+      { id: 5, name: 'MesenShuttle 07', vehicle: 'Shuttle', type: 'Reguler', capacity: 12, platNumber: 'B 7890 MNO' },
+      { id: 6, name: 'MesenShuttle 03', vehicle: 'Shuttle', type: 'Premium', capacity: 10, platNumber: 'B 1122 PQR' },
+      { id: 7, name: 'MesenShuttle 04', vehicle: 'Shuttle', type: 'Reguler', capacity: 12, platNumber: 'B 3344 STU' }
     ],
     schedules: [
       // Jakarta -> Bandung
@@ -57,6 +57,10 @@ export const useMockDataStore = defineStore('mockData', {
       { id: 22, routeId: 8, fleetId: 2, departureTime: '2026-07-10T11:00:00Z', price: 230000 },
       { id: 23, routeId: 8, fleetId: 7, departureTime: '2026-07-10T16:45:00Z', price: 190000 },
       { id: 24, routeId: 8, fleetId: 4, departureTime: '2026-07-10T20:00:00Z', price: 250000 },
+    ],
+    transactions: [
+      { id: 1, bookingCode: 'BKG-1001', customerName: 'John Doe', email: 'john@example.com', phone: '08123456789', scheduleId: 1, amount: 150000, status: 'PAID', createdAt: '2026-07-09T08:30:00Z' },
+      { id: 2, bookingCode: 'BKG-1002', customerName: 'Jane Smith', email: 'jane@example.com', phone: '08198765432', scheduleId: 2, amount: 180000, status: 'PENDING', createdAt: '2026-07-10T09:15:00Z' }
     ]
   }),
   getters: {

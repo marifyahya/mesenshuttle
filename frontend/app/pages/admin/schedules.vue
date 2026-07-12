@@ -1,72 +1,42 @@
 <template>
-  <div>
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-bold text-gray-900">Manage Schedules</h1>
-      <UButton color="primary" icon="i-lucide-plus" @click="openCreateModal">Add Schedule</UButton>
-    </div>
+  <div class="space-y-6 pb-12">
+    <!-- Header -->
+    <AdminPageHeader 
+      title="Manage Schedules" 
+      description="Create and manage departure schedules and pricing." 
+      button-label="Add Schedule" 
+      button-icon="i-lucide-calendar-plus" 
+      @action="openCreateModal" 
+    />
 
-    <UCard :ui="{ body: { padding: '!p-0' } }">
-      <UTable :columns="columns" :rows="tableRows">
-        <template #departureTime-data="{ row }">
-          {{ new Date(row.departureTime).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) }}
+    <UCard class="ring-1 ring-gray-100 rounded-2xl shadow-sm" :ui="{ body: '!p-0' }">
+      <UTable :columns="columns" :rows="tableRows" :ui="{ td: 'whitespace-nowrap transition-colors hover:bg-gray-50/50' }">
+        <template #departureTime-cell="{ row }">
+          <div class="flex flex-col">
+            <span class="font-medium text-gray-900">{{ new Date(row.original.departureTime as string).toLocaleDateString('id-ID', { dateStyle: 'medium' }) }}</span>
+            <span class="text-xs text-gray-500">{{ new Date(row.original.departureTime as string).toLocaleTimeString('id-ID', { timeStyle: 'short' }) }}</span>
+          </div>
         </template>
-        <template #price-data="{ row }">
-          Rp {{ row.price.toLocaleString() }}
+        <template #price-cell="{ row }">
+          <span class="font-semibold text-gray-900">Rp {{ ((row.original.price as number) || 0).toLocaleString() }}</span>
         </template>
-        <template #actions-data="{ row }">
+        <template #actions-cell="{ row }">
           <div class="flex gap-2">
-            <UButton size="xs" color="gray" variant="ghost" icon="i-lucide-edit" @click="openEditModal(row)" />
-            <UButton size="xs" color="red" variant="ghost" icon="i-lucide-trash" @click="deleteSchedule(row.id)" />
+            <UButton size="xs" color="neutral" variant="ghost" icon="i-lucide-edit" @click="openEditModal(row.original)" />
+            <UButton size="xs" color="error" variant="ghost" icon="i-lucide-trash" @click="deleteSchedule(row.original.id as number)" />
+          </div>
+        </template>
+        <template #empty-state>
+          <div class="flex flex-col items-center justify-center py-12 px-4 text-center">
+            <UIcon name="i-lucide-calendar-x" class="w-12 h-12 text-gray-300 mb-4" />
+            <p class="text-sm font-medium text-gray-900">No schedules found</p>
+            <p class="text-sm text-gray-500 mt-1">Get started by creating a new departure schedule.</p>
           </div>
         </template>
       </UTable>
     </UCard>
 
-    <UModal v-model="isModalOpen">
-      <UCard :ui="{ ring: '', divide: 'divide-y divide-gray-100' }">
-        <template #header>
-          <div class="flex items-center justify-between">
-            <h3 class="text-base font-semibold leading-6 text-gray-900">
-              {{ isEditing ? 'Edit Schedule' : 'Add New Schedule' }}
-            </h3>
-            <UButton color="gray" variant="ghost" icon="i-heroicons-x-mark-20-solid" class="-my-1" @click="isModalOpen = false" />
-          </div>
-        </template>
-
-        <form @submit.prevent="saveSchedule" class="space-y-4">
-          <UFormField label="Route" required>
-            <USelect 
-              v-model.number="form.routeId" 
-              :options="store.routes.map(r => ({ label: `${r.originCity} (${r.originPool}) → ${r.destinationCity} (${r.destinationPool})`, value: r.id }))" 
-              required 
-            />
-          </UFormField>
-          
-          <UFormField label="Fleet" required>
-            <USelect 
-              v-model.number="form.fleetId" 
-              :options="store.fleets.map(f => ({ label: `${f.name} - ${f.type} (${f.capacity} seats)`, value: f.id }))" 
-              required 
-            />
-          </UFormField>
-          
-          <div class="grid grid-cols-2 gap-4">
-            <UFormField label="Departure Time" required>
-              <UInput v-model="form.departureTime" type="datetime-local" required />
-            </UFormField>
-            
-            <UFormField label="Price (Rp)" required>
-              <UInput v-model.number="form.price" type="number" required min="0" />
-            </UFormField>
-          </div>
-
-          <div class="flex justify-end gap-3 mt-6">
-            <UButton color="gray" variant="ghost" @click="isModalOpen = false">Cancel</UButton>
-            <UButton type="submit" color="primary">Save Schedule</UButton>
-          </div>
-        </form>
-      </UCard>
-    </UModal>
+    <AdminScheduleModal v-model:open="isModalOpen" v-model:form="form" :is-editing="isEditing" @save="saveSchedule" />
   </div>
 </template>
 
@@ -79,12 +49,12 @@ definePageMeta({ layout: 'admin' })
 const store = useMockDataStore()
 
 const columns = [
-  { key: 'id', label: 'ID' },
-  { key: 'route', label: 'Route' },
-  { key: 'fleet', label: 'Fleet' },
-  { key: 'departureTime', label: 'Departure Time' },
-  { key: 'price', label: 'Price' },
-  { key: 'actions', label: 'Actions' }
+  { accessorKey: 'id', header: 'ID' },
+  { accessorKey: 'route', header: 'Route' },
+  { accessorKey: 'fleet', header: 'Fleet' },
+  { accessorKey: 'departureTime', header: 'Departure Time' },
+  { accessorKey: 'price', header: 'Price' },
+  { accessorKey: 'actions', header: 'Actions' }
 ]
 
 const tableRows = computed(() => {
@@ -125,7 +95,6 @@ const openCreateModal = () => {
 }
 
 const openEditModal = (schedule: any) => {
-  // Format for datetime-local
   let formattedTime = ''
   if (schedule.departureTime) {
     const dateObj = new Date(schedule.departureTime)
@@ -141,7 +110,6 @@ const openEditModal = (schedule: any) => {
 }
 
 const saveSchedule = () => {
-  // Convert local datetime to ISO string for store
   const isoTime = new Date(form.value.departureTime).toISOString()
   
   if (isEditing.value) {

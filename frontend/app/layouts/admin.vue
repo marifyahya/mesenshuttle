@@ -6,9 +6,10 @@
       </div>
       <nav class="p-4 space-y-1">
         <NuxtLink to="/admin/dashboard" class="block px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-primary-600" active-class="bg-primary-50 text-primary-600">Dashboard</NuxtLink>
+        <NuxtLink to="/admin/transactions" class="block px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-primary-600" active-class="bg-primary-50 text-primary-600">Transaction</NuxtLink>
+        <NuxtLink to="/admin/schedules" class="block px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-primary-600" active-class="bg-primary-50 text-primary-600">Schedule</NuxtLink>
         <NuxtLink to="/admin/routes" class="block px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-primary-600" active-class="bg-primary-50 text-primary-600">Routes</NuxtLink>
-        <NuxtLink to="/admin/fleets" class="block px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-primary-600" active-class="bg-primary-50 text-primary-600">Fleets</NuxtLink>
-        <NuxtLink to="/admin/schedules" class="block px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-primary-600" active-class="bg-primary-50 text-primary-600">Schedules</NuxtLink>
+        <NuxtLink to="/admin/fleets" class="block px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-primary-600" active-class="bg-primary-50 text-primary-600">Fleet</NuxtLink>
       </nav>
     </aside>
     <div class="flex-1 flex flex-col">
