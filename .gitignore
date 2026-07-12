@@ -1,0 +1,2 @@
+# Ignore the local Docker override file, keep the .example
+docker-compose.override.yml
