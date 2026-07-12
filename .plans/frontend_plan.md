@@ -27,21 +27,21 @@ These pages will allow a guest user to browse schedules, select seats, and compl
 - **Purpose**: The landing page where users initiate their booking.
 - **Components**:
   - Hero section with a welcoming premium design.
-  - Search Form: Origin Pool Dropdown, Destination Pool Dropdown, Departure Date Picker, "Search Buses" Button.
+  - Search Form: Origin Pool Dropdown, Destination Pool Dropdown, Departure Date Picker, "Search Shuttles" Button.
 
 ### 2.2 Search Results Page (`/schedules`)
-- **Purpose**: Displays available bus schedules based on search criteria.
+- **Purpose**: Displays available shuttle schedules based on search criteria.
 - **Components**:
   - Search summary (Origin, Destination, Date).
-  - List of available schedules (Cards/List view): Departure/Arrival Time, Bus Type (Premium or Standard), Price, "Select Seat" Button.
+  - List of available schedules (Cards/List view): Departure/Arrival Time, Shuttle Type (Premium or Standard), Price, "Select Seat" Button.
 
 ### 2.3 Seat Selection Page (`/seat-selection/:scheduleId`)
 - **Purpose**: Interactive seat map for the user to choose their seat.
 - **Components**:
-  - Bus Information (Route, Time, Type).
+  - Shuttle Information (Route, Time, Type).
   - Interactive Seat Map:
-    - **Standard Bus**: 1-2 configuration (e.g., [Seat] - Aisle - [Seat][Seat]).
-    - **Premium Bus**: 1-1 configuration (e.g., [Seat] - Aisle - [Seat]).
+    - **Standard Shuttle**: 1-2 configuration (e.g., [Seat] - Aisle - [Seat][Seat]).
+    - **Premium Shuttle**: 1-1 configuration (e.g., [Seat] - Aisle - [Seat]).
     - Legend: Available, Selected, Unavailable (mock locked seats).
   - "Continue to Passenger Details" Button.
 
@@ -70,15 +70,15 @@ These pages are for the operational staff to manage the system.
 
 ### 3.2 Admin Dashboard (`/admin/dashboard`)
 - **Purpose**: Overview of system statistics.
-- **Components**: Sidebar navigation, mock metrics (total bookings today, active buses, etc.).
+- **Components**: Sidebar navigation, mock metrics (total bookings today, active shuttles, etc.).
 
 ### 3.3 Route (Pool) Management (`/admin/routes`)
 - **Purpose**: Manage origin and destination pools.
 - **Components**: Data table of existing routes, "Add New Route" Modal/Form.
 
 ### 3.4 Fleet Management (`/admin/fleets`)
-- **Purpose**: Manage buses and their types.
-- **Components**: Data table of fleets (Bus Name, Type: Premium/Standard, Capacity), "Add New Bus" Modal/Form.
+- **Purpose**: Manage shuttles and their types.
+- **Components**: Data table of fleets (Shuttle Name, Type: Premium/Standard, Capacity), "Add New Shuttle" Modal/Form.
 
 ### 3.5 Schedule Management (`/admin/schedules`)
 - **Purpose**: Assign fleets to routes at specific times.
@@ -100,7 +100,7 @@ These pages are for the operational staff to manage the system.
 
 - `[ ]` **Phase 3: Customer Flow (Public)**
   - `[ ]` Build Home/Search Page (`/`) with Hero and Search Form.
-  - `[ ]` Build Search Results Page (`/schedules`) displaying available buses.
+  - `[ ]` Build Search Results Page (`/schedules`) displaying available shuttles.
   - `[ ]` Build Seat Selection Page (`/seat-selection/:id`) with interactive Standard (1-2) and Premium (1-1) layouts.
   - `[ ]` Build Passenger Details Page (`/checkout/details`) to collect email and name.
   - `[ ]` Build Mock Payment & Success Page (`/checkout/payment-success`) displaying the E-Ticket.
