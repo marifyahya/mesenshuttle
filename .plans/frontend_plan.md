@@ -88,30 +88,30 @@ These pages are for the operational staff to manage the system.
 
 ## 4. Frontend UI Task Breakdown
 
-- `[ ]` **Phase 1: Project Initialization**
-  - `[ ]` Initialize a new Nuxt.js project.
-  - `[ ]` Install and configure Nuxt UI and Tailwind CSS.
-  - `[ ]` Setup global state management (e.g., Pinia) for mock data.
+- `[x]` **Phase 1: Project Initialization**
+  - `[x]` Initialize a new Nuxt.js project.
+  - `[x]` Install and configure Nuxt UI and Tailwind CSS.
+  - `[x]` Setup global state management (e.g., Pinia) for mock data.
 
-- `[ ]` **Phase 2: Core Architecture & Mock Data**
-  - `[ ]` Create mock data sets (Routes, Fleets, Schedules).
-  - `[ ]` Setup basic layouts (`default.vue` for customers, `admin.vue` for admin).
-  - `[ ]` Create global components (Navbar, Footer).
+- `[x]` **Phase 2: Core Architecture & Mock Data**
+  - `[x]` Create mock data sets (Routes, Fleets, Schedules).
+  - `[x]` Setup basic layouts (`default.vue` for customers, `admin.vue` for admin).
+  - `[x]` Create global components (Navbar, Footer).
 
-- `[ ]` **Phase 3: Customer Flow (Public)**
-  - `[ ]` Build Home/Search Page (`/`) with Hero and Search Form.
-  - `[ ]` Build Search Results Page (`/schedules`) displaying available shuttles.
-  - `[ ]` Build Seat Selection Page (`/seat-selection/:id`) with interactive Standard (1-2) and Premium (1-1) layouts.
-  - `[ ]` Build Passenger Details Page (`/checkout/details`) to collect email and name.
-  - `[ ]` Build Mock Payment & Success Page (`/checkout/payment-success`) displaying the E-Ticket.
+- `[x]` **Phase 3: Customer Flow (Public)**
+  - `[x]` Build Home/Search Page (`/`) with Hero and Search Form.
+  - `[x]` Build Search Results Page (`/schedules`) displaying available shuttles.
+  - `[x]` Build Seat Selection Page (`/seat-selection/:id`) with interactive Standard (1-2) and Premium (1-1) layouts.
+  - `[x]` Build Passenger Details Page (`/checkout/details`) to collect email and name.
+  - `[x]` Build Mock Payment & Success Page (`/checkout/payment-success`) displaying the E-Ticket.
 
-- `[ ]` **Phase 4: Admin Flow (Protected)**
-  - `[ ]` Build Admin Login Page (`/admin/login`).
-  - `[ ]` Build Admin Dashboard (`/admin/dashboard`) with mock metrics.
-  - `[ ]` Build Route Management Page (`/admin/routes`) with data tables.
-  - `[ ]` Build Fleet Management Page (`/admin/fleets`).
-  - `[ ]` Build Schedule Management Page (`/admin/schedules`).
+- `[x]` **Phase 4: Admin Flow (Protected)**
+  - `[x]` Build Admin Login Page (`/admin/login`).
+  - `[x]` Build Admin Dashboard (`/admin/dashboard`) with mock metrics.
+  - `[x]` Build Route Management Page (`/admin/routes`) with data tables.
+  - `[x]` Build Fleet Management Page (`/admin/fleets`).
+  - `[x]` Build Schedule Management Page (`/admin/schedules`).
 
 - `[ ]` **Phase 5: Review & Polish**
-  - `[ ]` Ensure premium aesthetics (clean and modern design, smooth animations).
+  - `[ ]` Ensure premium aesthetics (clean and modern design, smooth animations) untuk Public Pages.
   - `[ ]` Verify responsive design across all pages.
