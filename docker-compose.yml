@@ -4,17 +4,31 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: mesenshuttle-frontend
-    ports:
-      - "3000:3000"
     environment:
       - NODE_ENV=production
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: prod
+    container_name: mesenshuttle-backend
+    environment:
+      - APP_ENV=production
+      - DB_HOST=db
+      - DB_PORT=3306
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - PORT=8080
+    depends_on:
+      - db
+      - redis
     restart: unless-stopped
 
   db:
     image: mysql:8.0
     container_name: mesenshuttle-db
-    ports:
-      - "3306:3306"
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: mesenshuttle
@@ -27,8 +41,6 @@ services:
   redis:
     image: redis:7-alpine
     container_name: mesenshuttle-redis
-    ports:
-      - "6379:6379"
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes

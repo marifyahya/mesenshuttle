@@ -144,9 +144,9 @@ sequenceDiagram
 ## 5. Tahapan Eksekusi Backend (User Stories)
 
 **Phase 1: Inisialisasi & Setup Lingkungan**
-- `[ ]` As a BE, I want to setup project Golang (`mesenshuttle-backend`).
-- `[ ]` As a BE, I want to setup Database MySQL and GORM Auto-migration.
-- `[ ]` As a BE, I want to setup Redis connection.
+- `[x]` As a BE, I want to setup project Golang (`mesenshuttle-backend`).
+- `[x]` As a BE, I want to setup Database MySQL and GORM Auto-migration.
+- `[x]` As a BE, I want to setup Redis connection.
 
 **Phase 2: Pengembangan API Admin (Master Data & Auth)**
 - `[ ]` As a FE, I want to have endpoint to login and receive JWT token.

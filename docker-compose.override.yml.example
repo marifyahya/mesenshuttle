@@ -1,8 +1,10 @@
 services:
   frontend:
     build:
-      target: builder
+      target: base
     command: npm run dev
+    ports:
+      - "3000:3000"
     environment:
       - NODE_ENV=development
       - NUXT_HOST=0.0.0.0
@@ -10,3 +12,31 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
+
+  backend:
+    build:
+      target: dev
+    ports:
+      - "8081:8080"
+    environment:
+      - APP_ENV=development
+      - DB_HOST=db
+      - DB_PORT=3306
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - PORT=8080
+    volumes:
+      - ./backend:/app
+
+  db:
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: mesenshuttle
+      MYSQL_USER: mesen_user
+      MYSQL_PASSWORD: mesen_password
+
+  redis:
+    ports:
+      - "6380:6379"

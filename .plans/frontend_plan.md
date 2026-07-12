@@ -112,6 +112,6 @@ These pages are for the operational staff to manage the system.
   - `[x]` Build Fleet Management Page (`/admin/fleets`).
   - `[x]` Build Schedule Management Page (`/admin/schedules`).
 
-- `[ ]` **Phase 5: Review & Polish**
-  - `[ ]` Ensure premium aesthetics (clean and modern design, smooth animations) untuk Public Pages.
-  - `[ ]` Verify responsive design across all pages.
+- `[x]` **Phase 5: Review & Polish**
+  - `[x]` Ensure premium aesthetics (clean and modern design, smooth animations) untuk Public Pages.
+  - `[x]` Verify responsive design across all pages.
