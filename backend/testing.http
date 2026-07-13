@@ -1,4 +1,5 @@
 ### Admin Login
+# @name login
 POST http://localhost:8081/api/admin/login
 Content-Type: application/json
 
@@ -6,3 +7,7 @@ Content-Type: application/json
   "email": "admin@example.com",
   "password": "password123"
 }
+
+### Get Routes (Requires JWT Token from Login)
+GET http://localhost:8081/api/admin/routes
+Authorization: Bearer {{login.response.body.data.token}}

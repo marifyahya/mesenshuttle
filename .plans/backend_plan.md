@@ -151,7 +151,7 @@ sequenceDiagram
 
 **Phase 2: Admin API Development (Master Data & Auth)**
 - `[x]` As a FE, I want to have endpoint to login and receive JWT token.
-- `[ ]` As a FE, I want to have endpoint to get list of Routes (`GET /api/admin/routes`).
+- `[x]` As a FE, I want to have endpoint to get list of Routes (`GET /api/admin/routes`).
 - `[ ]` As a FE, I want to have endpoint to create a new Route (`POST /api/admin/routes`).
 - `[ ]` As a FE, I want to have endpoint to update a Route (`PUT /api/admin/routes/:id`).
 - `[ ]` As a FE, I want to have endpoint to delete a Route (`DELETE /api/admin/routes/:id`).

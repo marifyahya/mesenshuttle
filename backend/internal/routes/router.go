@@ -2,11 +2,12 @@ package routes
 
 import (
 	"mesenshuttle-backend/internal/controllers"
+	"mesenshuttle-backend/internal/middlewares"
 
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRouter(authController *controllers.AuthController) *gin.Engine {
+func SetupRouter(authController *controllers.AuthController, routeController *controllers.RouteController, jwtSecret string) *gin.Engine {
 	r := gin.Default()
 
 	r.GET("/", func(c *gin.Context) {
@@ -20,6 +21,12 @@ func SetupRouter(authController *controllers.AuthController) *gin.Engine {
 		adminGroup := api.Group("/admin")
 		{
 			adminGroup.POST("/login", authController.Login)
+
+			protected := adminGroup.Group("/")
+			protected.Use(middlewares.JWTAuthMiddleware(jwtSecret))
+			{
+				protected.GET("/routes", routeController.GetRoutes)
+			}
 		}
 	}
 

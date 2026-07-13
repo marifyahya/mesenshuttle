@@ -50,8 +50,12 @@ func main() {
 	authService := services.NewAuthService(adminRepo, cfg)
 	authController := controllers.NewAuthController(authService)
 
+	routeRepo := repositories.NewRouteRepository(db)
+	routeService := services.NewRouteService(routeRepo)
+	routeController := controllers.NewRouteController(routeService)
+
 	// Setup Router
-	r := routes.SetupRouter(authController)
+	r := routes.SetupRouter(authController, routeController, cfg.JWTSecret)
 
 	log.Printf("Starting server on port %s", cfg.Port)
 	if err := r.Run(":" + cfg.Port); err != nil {
