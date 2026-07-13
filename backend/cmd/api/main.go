@@ -8,6 +8,7 @@ import (
 	"mesenshuttle-backend/internal/models"
 	"mesenshuttle-backend/internal/repositories"
 	"mesenshuttle-backend/internal/routes"
+	"mesenshuttle-backend/internal/seeders"
 	"mesenshuttle-backend/internal/services"
 	"mesenshuttle-backend/pkg/database"
 )
@@ -35,6 +36,9 @@ func main() {
 	}
 
 	log.Println("Auto Migration completed!")
+
+	// Run Seeders
+	seeders.SeedAdmin(db)
 
 	_, err = database.InitRedis(cfg)
 	if err != nil {
