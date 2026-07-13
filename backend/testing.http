@@ -8,6 +8,6 @@ Content-Type: application/json
   "password": "password123"
 }
 
-### Get Routes (Requires JWT Token from Login)
+### Get All Routes
 GET http://localhost:8081/api/admin/routes
 Authorization: Bearer {{login.response.body.data.token}}
