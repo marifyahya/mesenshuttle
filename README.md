@@ -8,7 +8,17 @@ A web-based shuttle bus booking system built with modern technologies using a si
 - **Backend:** Golang (Gin Framework + GORM)
 - **Database:** MySQL 8
 - **Cache / Message Broker:** Redis
+- **Task Queue:** Asynq
+- **API Documentation:** OpenAPI / Swagger
 - **Infrastructure:** Docker & Docker Compose
+
+## ✨ Key Features & Technical Highlights
+
+- **Robust Concurrency Handling:** Implemented **Redis Lua Scripts** to handle race conditions during seat bookings. Ensures that two users cannot book the same seat at the exact same millisecond.
+- **Background Processing:** Utilizes **Asynq** (Redis-based task queue) for reliable background processes such as sending E-Tickets via email.
+- **Payment Gateway Integration:** Integrated with **Xendit** to automatically generate invoice URLs and handle payment webhooks securely.
+- **Secure Admin Panel:** JWT-based authentication for admins to manage Fleets, Routes, and Schedules.
+- **Clean Architecture:** Built using layered architecture (Controller -> Service -> Repository) for high maintainability and testability.
 
 ## Prerequisites
 
@@ -93,3 +103,20 @@ In production mode, the application (both Frontend and Backend) is compiled into
 - `/backend` - Golang REST API source code
 - `docker-compose.yml` - Main Docker Compose configuration (uses production images)
 - `docker-compose.override.yml` - Additional configuration for development mode (hot-reloading, exposed local ports, etc.)
+
+---
+
+## 📚 API Documentation
+
+The complete API specifications follow the OpenAPI 3.0 standard. 
+- You can find the raw YAML specification file in [`backend/openapi.yaml`](backend/openapi.yaml).
+- Simply import it to **Postman**, **Swagger UI**, or **Insomnia** to interact with the API effortlessly.
+
+## 🧪 Testing
+
+Unit tests are implemented for the backend's business logic and presentation layers using the `testify` package. To run all backend tests:
+
+```bash
+cd backend
+go test -v ./...
+```
