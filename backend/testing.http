@@ -18,8 +18,8 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.token}}
 
 {
-  "OriginCity": "Jakarta",
-  "OriginPool": "Pool Kebon Jeruk",
-  "DestinationCity": "Bandung",
-  "DestinationPool": "Pool Pasteur"
+  "origin_city": "Jakarta",
+  "origin_pool": "Pool Kebon Jeruk",
+  "destination_city": "Bandung",
+  "destination_pool": "Pool Pasteur"
 }

@@ -44,31 +44,45 @@ components:
     Route:
       type: object
       properties:
-        ID:
+        id:
           type: string
           format: uuid
-        OriginCity:
+        origin_city:
           type: string
           example: Jakarta
-        OriginPool:
+        origin_pool:
           type: string
           example: Pool Kebon Jeruk
-        DestinationCity:
+        destination_city:
           type: string
           example: Bandung
-        DestinationPool:
+        destination_pool:
           type: string
           example: Pool Pasteur
-        CreatedAt:
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
           type: string
           format: date-time
     ErrorResponse:
       type: object
       properties:
-        error:
-          type: string
         status:
           type: string
+          example: error
+        error:
+          type: string
+          example: Validation failed
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
 
 paths:
   /admin/login:
@@ -128,6 +142,19 @@ paths:
         - Admin Routes
       security:
         - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Page number for pagination
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Number of items per page
       responses:
         '200':
           description: A list of routes
@@ -143,9 +170,21 @@ paths:
                     type: string
                     example: Routes retrieved successfully
                   data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Route'
+                    type: object
+                    properties:
+                      total_count:
+                        type: integer
+                        example: 50
+                      page:
+                        type: integer
+                        example: 1
+                      limit:
+                        type: integer
+                        example: 10
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Route'
         '401':
           description: Unauthorized (Token is missing or invalid)
           content:
@@ -173,21 +212,21 @@ paths:
             schema:
               type: object
               required:
-                - OriginCity
-                - OriginPool
-                - DestinationCity
-                - DestinationPool
+                - origin_city
+                - origin_pool
+                - destination_city
+                - destination_pool
               properties:
-                OriginCity:
+                origin_city:
                   type: string
                   example: Jakarta
-                OriginPool:
+                origin_pool:
                   type: string
                   example: Pool Kebon Jeruk
-                DestinationCity:
+                destination_city:
                   type: string
                   example: Bandung
-                DestinationPool:
+                destination_pool:
                   type: string
                   example: Pool Pasteur
       responses:
