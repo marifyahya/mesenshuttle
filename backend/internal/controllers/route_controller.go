@@ -2,7 +2,9 @@ package controllers
 
 import (
 	"net/http"
+	"strconv"
 
+	"mesenshuttle-backend/internal/dto"
 	"mesenshuttle-backend/internal/models"
 	"mesenshuttle-backend/internal/services"
 	"mesenshuttle-backend/pkg/utils"
@@ -19,25 +21,35 @@ func NewRouteController(routeService services.RouteService) *RouteController {
 }
 
 func (c *RouteController) GetRoutes(ctx *gin.Context) {
-	routes, err := c.routeService.GetAllRoutes()
+	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "10"))
+	
+	if page <= 0 {
+		page = 1
+	}
+	if limit <= 0 {
+		limit = 10
+	}
+
+	routes, totalCount, err := c.routeService.GetAllRoutes(page, limit)
 	if err != nil {
 		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to retrieve routes")
 		return
 	}
 
-	utils.SuccessResponse(ctx, http.StatusOK, "Routes retrieved successfully", routes)
+	utils.SuccessResponse(ctx, http.StatusOK, "Routes retrieved successfully", dto.PaginatedResponse{
+		Data:       routes,
+		TotalCount: totalCount,
+		Page:       page,
+		Limit:      limit,
+	})
 }
 
 func (c *RouteController) CreateRoute(ctx *gin.Context) {
-	var input struct {
-		OriginCity      string `json:"OriginCity" binding:"required"`
-		OriginPool      string `json:"OriginPool" binding:"required"`
-		DestinationCity string `json:"DestinationCity" binding:"required"`
-		DestinationPool string `json:"DestinationPool" binding:"required"`
-	}
+	var input dto.CreateRouteRequest
 
 	if err := ctx.ShouldBindJSON(&input); err != nil {
-		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid request payload")
+		utils.ValidationErrorResponse(ctx, http.StatusBadRequest, utils.FormatValidationErrors(err))
 		return
 	}
 

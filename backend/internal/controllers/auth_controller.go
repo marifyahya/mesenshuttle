@@ -1,9 +1,12 @@
 package controllers
 
 import (
+	"errors"
 	"net/http"
 
+	"mesenshuttle-backend/internal/dto"
 	"mesenshuttle-backend/internal/services"
+	"mesenshuttle-backend/pkg/apperrors"
 	"mesenshuttle-backend/pkg/utils"
 
 	"github.com/gin-gonic/gin"
@@ -17,21 +20,16 @@ func NewAuthController(authService services.AuthService) *AuthController {
 	return &AuthController{authService: authService}
 }
 
-type LoginRequest struct {
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required"`
-}
-
 func (ac *AuthController) Login(c *gin.Context) {
-	var req LoginRequest
+	var req dto.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, err.Error())
+		utils.ValidationErrorResponse(c, http.StatusBadRequest, utils.FormatValidationErrors(err))
 		return
 	}
 
 	token, admin, err := ac.authService.Login(req.Email, req.Password)
 	if err != nil {
-		if err.Error() == "invalid email or password" {
+		if errors.Is(err, apperrors.ErrInvalidCredentials) {
 			utils.ErrorResponse(c, http.StatusUnauthorized, err.Error())
 			return
 		}
