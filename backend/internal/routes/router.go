@@ -26,6 +26,7 @@ func SetupRouter(authController *controllers.AuthController, routeController *co
 			protected.Use(middlewares.JWTAuthMiddleware(jwtSecret))
 			{
 				protected.GET("/routes", routeController.GetRoutes)
+				protected.POST("/routes", routeController.CreateRoute)
 			}
 		}
 	}

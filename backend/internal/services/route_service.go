@@ -7,6 +7,7 @@ import (
 
 type RouteService interface {
 	GetAllRoutes() ([]models.Route, error)
+	CreateRoute(route *models.Route) error
 }
 
 type routeService struct {
@@ -19,4 +20,8 @@ func NewRouteService(routeRepo repositories.RouteRepository) RouteService {
 
 func (s *routeService) GetAllRoutes() ([]models.Route, error) {
 	return s.routeRepo.FindAll()
+}
+
+func (s *routeService) CreateRoute(route *models.Route) error {
+	return s.routeRepo.Create(route)
 }

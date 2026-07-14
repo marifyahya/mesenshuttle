@@ -24,6 +24,11 @@ func (m *MockRouteRepository) FindAll() ([]models.Route, error) {
 	return nil, args.Error(1)
 }
 
+func (m *MockRouteRepository) Create(route *models.Route) error {
+	args := m.Called(route)
+	return args.Error(0)
+}
+
 func TestRouteService_GetAllRoutes(t *testing.T) {
 	mockRepo := new(MockRouteRepository)
 	routeService := services.NewRouteService(mockRepo)
@@ -51,6 +56,32 @@ func TestRouteService_GetAllRoutes(t *testing.T) {
 		assert.Error(t, err)
 		assert.Equal(t, "db error", err.Error())
 		assert.Nil(t, routes)
+		mockRepo.AssertExpectations(t)
+	})
+}
+
+func TestRouteService_CreateRoute(t *testing.T) {
+	mockRepo := new(MockRouteRepository)
+	routeService := services.NewRouteService(mockRepo)
+
+	t.Run("Success", func(t *testing.T) {
+		route := &models.Route{OriginCity: "Jakarta", DestinationCity: "Bandung"}
+		mockRepo.On("Create", route).Return(nil).Once()
+
+		err := routeService.CreateRoute(route)
+
+		assert.NoError(t, err)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("Database Error", func(t *testing.T) {
+		route := &models.Route{OriginCity: "Jakarta", DestinationCity: "Bandung"}
+		mockRepo.On("Create", route).Return(errors.New("db error")).Once()
+
+		err := routeService.CreateRoute(route)
+
+		assert.Error(t, err)
+		assert.Equal(t, "db error", err.Error())
 		mockRepo.AssertExpectations(t)
 	})
 }

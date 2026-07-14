@@ -11,3 +11,15 @@ Content-Type: application/json
 ### Get All Routes
 GET http://localhost:8081/api/admin/routes
 Authorization: Bearer {{login.response.body.data.token}}
+
+### Create a Route
+POST http://localhost:8081/api/admin/routes
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.data.token}}
+
+{
+  "OriginCity": "Jakarta",
+  "OriginPool": "Pool Kebon Jeruk",
+  "DestinationCity": "Bandung",
+  "DestinationPool": "Pool Pasteur"
+}
