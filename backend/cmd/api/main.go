@@ -4,12 +4,8 @@ import (
 	"log"
 
 	"mesenshuttle-backend/internal/config"
-	"mesenshuttle-backend/internal/controllers"
-	"mesenshuttle-backend/internal/models"
-	"mesenshuttle-backend/internal/repositories"
+	"mesenshuttle-backend/internal/container"
 	"mesenshuttle-backend/internal/routes"
-	"mesenshuttle-backend/internal/seeders"
-	"mesenshuttle-backend/internal/services"
 	"mesenshuttle-backend/pkg/database"
 )
 
@@ -21,44 +17,23 @@ func main() {
 		log.Fatalf("Failed to initialize MySQL: %v", err)
 	}
 
-	log.Println("Running Auto Migration...")
-	err = db.AutoMigrate(
-		&models.Admin{},
-		&models.Route{},
-		&models.Fleet{},
-		&models.Schedule{},
-		&models.Booking{},
-		&models.BookingSeat{},
-	)
-
-	if err != nil {
-		log.Fatalf("Failed to run migrations: %v", err)
-	}
-
-	log.Println("Auto Migration completed!")
-
-	// Run Seeders
-	seeders.SeedAdmin(db)
-
-	_, err = database.InitRedis(cfg)
+	redisClient, err := database.InitRedis(cfg)
 	if err != nil {
 		log.Fatalf("Failed to initialize Redis: %v", err)
 	}
 
-	// Dependency Injection
-	adminRepo := repositories.NewAdminRepository(db)
-	authService := services.NewAuthService(adminRepo, cfg)
-	authController := controllers.NewAuthController(authService)
+	authModule := container.NewAuthModule(db, cfg, redisClient)
+	routeModule := container.NewRouteModule(db)
 
-	routeRepo := repositories.NewRouteRepository(db)
-	routeService := services.NewRouteService(routeRepo)
-	routeController := controllers.NewRouteController(routeService)
+	modules := []container.Module{
+		authModule,
+		routeModule,
+	}
 
-	// Setup Router
-	r := routes.SetupRouter(authController, routeController, cfg.JWTSecret)
+	r := routes.SetupRouter(modules, cfg.JWTSecret, redisClient)
 
-	log.Printf("Starting server on port %s", cfg.Port)
+	log.Printf("Starting server on port %s...", cfg.Port)
 	if err := r.Run(":" + cfg.Port); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
+		log.Fatalf("Failed to run server: %v", err)
 	}
 }

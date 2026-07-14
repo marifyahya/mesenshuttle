@@ -1,14 +1,18 @@
 package routes
 
 import (
-	"mesenshuttle-backend/internal/controllers"
+	"mesenshuttle-backend/internal/container"
 	"mesenshuttle-backend/internal/middlewares"
 
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 )
 
-func SetupRouter(authController *controllers.AuthController, routeController *controllers.RouteController, jwtSecret string) *gin.Engine {
-	r := gin.Default()
+func SetupRouter(modules []container.Module, jwtSecret string, redisClient *redis.Client) *gin.Engine {
+	r := gin.New()
+
+	r.Use(middlewares.StructuredLogger())
+	r.Use(gin.Recovery())
 
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
@@ -17,18 +21,13 @@ func SetupRouter(authController *controllers.AuthController, routeController *co
 	})
 
 	api := r.Group("/api")
-	{
-		adminGroup := api.Group("/admin")
-		{
-			adminGroup.POST("/login", authController.Login)
 
-			protected := adminGroup.Group("/")
-			protected.Use(middlewares.JWTAuthMiddleware(jwtSecret))
-			{
-				protected.GET("/routes", routeController.GetRoutes)
-				protected.POST("/routes", routeController.CreateRoute)
-			}
-		}
+	adminPublic := api.Group("/admin")
+	adminProtected := api.Group("/admin")
+	adminProtected.Use(middlewares.JWTAuthMiddleware(jwtSecret))
+
+	for _, m := range modules {
+		m.RegisterRoutes(adminPublic, adminProtected)
 	}
 
 	return r
