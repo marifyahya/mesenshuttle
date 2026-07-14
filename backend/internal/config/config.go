@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -18,6 +19,7 @@ type Config struct {
 	RedisPassword string
 	JWTSecret     string
 	Port          string
+	BcryptCost    int
 }
 
 func LoadConfig() *Config {
@@ -31,6 +33,12 @@ func LoadConfig() *Config {
 		port = "8080"
 	}
 
+	bcryptCostStr := os.Getenv("BCRYPT_COST")
+	bcryptCost := 14
+	if bcryptCostStr != "" {
+		fmt.Sscanf(bcryptCostStr, "%d", &bcryptCost)
+	}
+
 	return &Config{
 		DBUser:        os.Getenv("DB_USER"),
 		DBPassword:    os.Getenv("DB_PASSWORD"),
@@ -42,5 +50,6 @@ func LoadConfig() *Config {
 		RedisPassword: os.Getenv("REDIS_PASSWORD"),
 		JWTSecret:     os.Getenv("JWT_SECRET"),
 		Port:          port,
+		BcryptCost:    bcryptCost,
 	}
 }

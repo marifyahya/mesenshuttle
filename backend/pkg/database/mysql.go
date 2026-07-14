@@ -10,8 +10,6 @@ import (
 	"gorm.io/gorm"
 )
 
-var DB *gorm.DB
-
 func InitMySQL(cfg *config.Config) (*gorm.DB, error) {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		cfg.DBUser, cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBName)
@@ -22,7 +20,6 @@ func InitMySQL(cfg *config.Config) (*gorm.DB, error) {
 		return nil, err
 	}
 
-	DB = db
 	log.Println("Connected to MySQL successfully!")
 	return db, nil
 }

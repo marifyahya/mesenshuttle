@@ -10,8 +10,6 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-var RedisClient *redis.Client
-
 func InitRedis(cfg *config.Config) (*redis.Client, error) {
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%s", cfg.RedisHost, cfg.RedisPort),
@@ -25,7 +23,6 @@ func InitRedis(cfg *config.Config) (*redis.Client, error) {
 		return nil, err
 	}
 
-	RedisClient = rdb
 	log.Println("Connected to Redis successfully!")
 	return rdb, nil
 }
