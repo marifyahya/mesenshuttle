@@ -7,6 +7,7 @@ import (
 	"mesenshuttle-backend/internal/config"
 	"mesenshuttle-backend/internal/models"
 	"mesenshuttle-backend/internal/repositories"
+	"mesenshuttle-backend/pkg/apperrors"
 	"mesenshuttle-backend/pkg/utils"
 )
 
@@ -30,23 +31,23 @@ func (s *authService) Login(email, password string) (string, *models.Admin, erro
 	admin, err := s.adminRepo.FindByEmail(email)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return "", nil, errors.New("invalid email or password")
+			return "", nil, apperrors.ErrInvalidCredentials
 		}
 		return "", nil, err
 	}
 
 	if !utils.CheckPasswordHash(password, admin.PasswordHash) {
-		return "", nil, errors.New("invalid email or password")
+		return "", nil, apperrors.ErrInvalidCredentials
 	}
 
 	secret := s.cfg.JWTSecret
 	if secret == "" {
-		return "", nil, errors.New("JWT_SECRET is not configured")
+		return "", nil, apperrors.ErrJWTSecretNotSet
 	}
 
 	token, err := utils.GenerateToken(admin.ID, admin.Email, secret)
 	if err != nil {
-		return "", nil, errors.New("failed to generate token")
+		return "", nil, apperrors.ErrTokenGeneration
 	}
 
 	return token, admin, nil

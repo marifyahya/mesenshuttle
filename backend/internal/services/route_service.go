@@ -6,7 +6,7 @@ import (
 )
 
 type RouteService interface {
-	GetAllRoutes() ([]models.Route, error)
+	GetAllRoutes(page, limit int) ([]models.Route, int64, error)
 	CreateRoute(route *models.Route) error
 }
 
@@ -18,8 +18,8 @@ func NewRouteService(routeRepo repositories.RouteRepository) RouteService {
 	return &routeService{routeRepo}
 }
 
-func (s *routeService) GetAllRoutes() ([]models.Route, error) {
-	return s.routeRepo.FindAll()
+func (s *routeService) GetAllRoutes(page, limit int) ([]models.Route, int64, error) {
+	return s.routeRepo.FindAll(page, limit)
 }
 
 func (s *routeService) CreateRoute(route *models.Route) error {

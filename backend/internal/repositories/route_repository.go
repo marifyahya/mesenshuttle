@@ -7,7 +7,7 @@ import (
 )
 
 type RouteRepository interface {
-	FindAll() ([]models.Route, error)
+	FindAll(page, limit int) ([]models.Route, int64, error)
 	Create(route *models.Route) error
 }
 
@@ -19,12 +19,19 @@ func NewRouteRepository(db *gorm.DB) RouteRepository {
 	return &routeRepository{db}
 }
 
-func (r *routeRepository) FindAll() ([]models.Route, error) {
+func (r *routeRepository) FindAll(page, limit int) ([]models.Route, int64, error) {
 	var routes []models.Route
-	if err := r.db.Find(&routes).Error; err != nil {
-		return nil, err
+	var totalCount int64
+
+	if err := r.db.Model(&models.Route{}).Count(&totalCount).Error; err != nil {
+		return nil, 0, err
 	}
-	return routes, nil
+
+	offset := (page - 1) * limit
+	if err := r.db.Limit(limit).Offset(offset).Find(&routes).Error; err != nil {
+		return nil, 0, err
+	}
+	return routes, totalCount, nil
 }
 
 func (r *routeRepository) Create(route *models.Route) error {
