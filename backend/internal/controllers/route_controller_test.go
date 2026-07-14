@@ -60,22 +60,22 @@ func TestRouteController_GetRoutes(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
-		
+
 		var response map[string]interface{}
 		json.Unmarshal(w.Body.Bytes(), &response)
 		assert.Equal(t, "success", response["status"])
 		assert.Equal(t, "Routes retrieved successfully", response["message"])
-		
+
 		dataMap := response["data"].(map[string]interface{})
 		assert.Equal(t, float64(1), dataMap["total_count"])
 		assert.Equal(t, float64(1), dataMap["page"])
 		assert.Equal(t, float64(10), dataMap["limit"])
-		
+
 		data := dataMap["data"].([]interface{})
 		assert.Len(t, data, 1)
-		
+
 		route := data[0].(map[string]interface{})
-		assert.Equal(t, "Jakarta", route["OriginCity"])
+		assert.Equal(t, "Jakarta", route["origin_city"])
 
 		mockService.AssertExpectations(t)
 	})
@@ -89,7 +89,7 @@ func TestRouteController_GetRoutes(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
-		
+
 		var response map[string]interface{}
 		json.Unmarshal(w.Body.Bytes(), &response)
 		assert.Equal(t, "error", response["status"])
@@ -113,12 +113,12 @@ func TestRouteController_CreateRoute(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusCreated, w.Code)
-		
+
 		var response map[string]interface{}
 		json.Unmarshal(w.Body.Bytes(), &response)
 		assert.Equal(t, "success", response["status"])
 		assert.Equal(t, "Route created successfully", response["message"])
-		
+
 		mockService.AssertExpectations(t)
 	})
 
@@ -130,10 +130,10 @@ func TestRouteController_CreateRoute(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
-		
+
 		var response map[string]interface{}
 		json.Unmarshal(w.Body.Bytes(), &response)
-		
+
 		assert.Equal(t, "error", response["status"])
 		assert.Equal(t, "Validation failed", response["error"])
 	})
@@ -148,7 +148,7 @@ func TestRouteController_CreateRoute(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
-		
+
 		var response map[string]interface{}
 		json.Unmarshal(w.Body.Bytes(), &response)
 		assert.Equal(t, "error", response["status"])

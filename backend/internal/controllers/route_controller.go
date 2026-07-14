@@ -23,7 +23,7 @@ func NewRouteController(routeService services.RouteService) *RouteController {
 func (c *RouteController) GetRoutes(ctx *gin.Context) {
 	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
 	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "10"))
-	
+
 	if page <= 0 {
 		page = 1
 	}

@@ -64,12 +64,12 @@ func TestAuthController_Login(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
-		
+
 		var response map[string]interface{}
 		json.Unmarshal(w.Body.Bytes(), &response)
 		assert.Equal(t, "success", response["status"])
 		assert.Equal(t, "Login successful", response["message"])
-		
+
 		data := response["data"].(map[string]interface{})
 		assert.Equal(t, "mocked-jwt-token", data["token"])
 		adminData := data["admin"].(map[string]interface{})
@@ -93,7 +93,7 @@ func TestAuthController_Login(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
-		
+
 		var response map[string]interface{}
 		json.Unmarshal(w.Body.Bytes(), &response)
 		assert.Equal(t, "error", response["status"])
