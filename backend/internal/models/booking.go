@@ -8,25 +8,26 @@ import (
 )
 
 type Booking struct {
-	ID          uuid.UUID `gorm:"type:char(36);primary_key"`
-	ScheduleID  uuid.UUID `gorm:"type:char(36);index;not null"`
-	BookingCode string    `gorm:"type:varchar(20);uniqueIndex;not null"`
-	Email       string    `gorm:"type:varchar(100);index;not null"`
-	Name        string    `gorm:"type:varchar(100);not null"`
-	Phone       string    `gorm:"type:varchar(20);index;not null"`
-	Status      int8      `gorm:"type:tinyint;index;not null;default:0"` // 0:PENDING, 1:PAID, 2:EXPIRED
-	TotalPrice  int       `gorm:"not null"`
-	PaymentURL  string    `gorm:"type:varchar(255)"`
-	CreatedAt   time.Time `gorm:"index"`
+	ID              uuid.UUID     `gorm:"type:char(36);primary_key" json:"id"`
+	ScheduleID      uuid.UUID     `gorm:"type:char(36);index;not null" json:"schedule_id"`
+	BookingCode     string        `gorm:"type:varchar(20);uniqueIndex;not null" json:"booking_code"`
+	Email           string        `gorm:"type:varchar(100);index;not null" json:"email"`
+	Name            string        `gorm:"type:varchar(100);not null" json:"name"`
+	Phone           string        `gorm:"type:varchar(20);index;not null" json:"phone"`
+	Status          int8          `gorm:"type:tinyint;index;not null;default:0" json:"status"` // 0:PENDING, 1:PAID, 2:EXPIRED
+	TotalPrice      int           `gorm:"not null" json:"total_price"`
+	PaymentURL      string        `gorm:"type:varchar(255)" json:"payment_url"`
+	CreatedAt       time.Time     `gorm:"index" json:"created_at"`
+	UpdatedAt       time.Time     `json:"updated_at"`
 
-	Schedule     Schedule      `gorm:"foreignKey:ScheduleID"`
-	BookingSeats []BookingSeat `gorm:"foreignKey:BookingID"`
+	Schedule     Schedule      `gorm:"foreignKey:ScheduleID" json:"schedule"`
+	BookingSeats []BookingSeat `gorm:"foreignKey:BookingID" json:"booking_seats"`
 }
 
 type BookingSeat struct {
-	ID         uuid.UUID `gorm:"type:char(36);primary_key"`
-	BookingID  uuid.UUID `gorm:"type:char(36);index;not null"`
-	SeatNumber string    `gorm:"type:varchar(10);not null"`
+	ID         uuid.UUID `gorm:"type:char(36);primary_key" json:"id"`
+	BookingID  uuid.UUID `gorm:"type:char(36);index;not null" json:"booking_id"`
+	SeatNumber string    `gorm:"type:varchar(10);not null" json:"seat_number"`
 }
 
 func (b *Booking) BeforeCreate(tx *gorm.DB) (err error) {
