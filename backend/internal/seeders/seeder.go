@@ -3,17 +3,18 @@ package seeders
 import (
 	"log"
 
+	"mesenshuttle-backend/internal/config"
 	"mesenshuttle-backend/internal/models"
 	"mesenshuttle-backend/pkg/utils"
 
 	"gorm.io/gorm"
 )
 
-func SeedAdmin(db *gorm.DB) {
+func SeedAdmin(db *gorm.DB, cfg *config.Config) {
 	var count int64
 	db.Model(&models.Admin{}).Count(&count)
 	if count == 0 {
-		hashedPassword, err := utils.HashPassword("password123")
+		hashedPassword, err := utils.HashPassword("password123", cfg.BcryptCost)
 		if err != nil {
 			log.Fatalf("Failed to hash password for admin seeder: %v", err)
 		}
