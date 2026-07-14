@@ -16,12 +16,12 @@ type MockRouteRepository struct {
 	mock.Mock
 }
 
-func (m *MockRouteRepository) FindAll() ([]models.Route, error) {
-	args := m.Called()
+func (m *MockRouteRepository) FindAll(page, limit int) ([]models.Route, int64, error) {
+	args := m.Called(page, limit)
 	if args.Get(0) != nil {
-		return args.Get(0).([]models.Route), args.Error(1)
+		return args.Get(0).([]models.Route), args.Get(1).(int64), args.Error(2)
 	}
-	return nil, args.Error(1)
+	return nil, 0, args.Error(2)
 }
 
 func (m *MockRouteRepository) Create(route *models.Route) error {
@@ -37,25 +37,27 @@ func TestRouteService_GetAllRoutes(t *testing.T) {
 		mockRoutes := []models.Route{
 			{ID: uuid.New(), OriginCity: "Jakarta", DestinationCity: "Bandung"},
 		}
-		mockRepo.On("FindAll").Return(mockRoutes, nil).Once()
+		mockRepo.On("FindAll", 1, 10).Return(mockRoutes, int64(1), nil).Once()
 
-		routes, err := routeService.GetAllRoutes()
+		routes, total, err := routeService.GetAllRoutes(1, 10)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, routes)
+		assert.Equal(t, int64(1), total)
 		assert.Len(t, routes, 1)
 		assert.Equal(t, "Jakarta", routes[0].OriginCity)
 		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("Database Error", func(t *testing.T) {
-		mockRepo.On("FindAll").Return(nil, errors.New("db error")).Once()
+		mockRepo.On("FindAll", 1, 10).Return(nil, int64(0), errors.New("db error")).Once()
 
-		routes, err := routeService.GetAllRoutes()
+		routes, total, err := routeService.GetAllRoutes(1, 10)
 
 		assert.Error(t, err)
 		assert.Equal(t, "db error", err.Error())
 		assert.Nil(t, routes)
+		assert.Equal(t, int64(0), total)
 		mockRepo.AssertExpectations(t)
 	})
 }

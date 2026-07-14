@@ -36,12 +36,15 @@ func TestAuthService_Login(t *testing.T) {
 
 	authService := services.NewAuthService(mockRepo, cfg)
 
-	hashedPassword, _ := utils.HashPassword("password123")
+	hashPwd := func(password string, cost int) string {
+		hash, _ := utils.HashPassword(password, cost)
+		return hash
+	}
 	adminID := uuid.New()
 	validAdmin := &models.Admin{
 		ID:           adminID,
 		Email:        "admin@test.com",
-		PasswordHash: hashedPassword,
+		PasswordHash: hashPwd("password123", 14),
 		Name:         "Admin Test",
 	}
 

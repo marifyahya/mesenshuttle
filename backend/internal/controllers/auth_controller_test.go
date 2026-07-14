@@ -3,13 +3,13 @@ package controllers_test
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"mesenshuttle-backend/internal/controllers"
 	"mesenshuttle-backend/internal/models"
+	"mesenshuttle-backend/pkg/apperrors"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -79,7 +79,7 @@ func TestAuthController_Login(t *testing.T) {
 	})
 
 	t.Run("Invalid Credentials", func(t *testing.T) {
-		mockService.On("Login", "wrong@test.com", "wrongpass").Return("", nil, errors.New("invalid email or password")).Once()
+		mockService.On("Login", "wrong@test.com", "wrongpass").Return("", (*models.Admin)(nil), apperrors.ErrInvalidCredentials).Once()
 
 		reqBody := map[string]string{
 			"email":    "wrong@test.com",

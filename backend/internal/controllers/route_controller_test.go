@@ -6,6 +6,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"mesenshuttle-backend/internal/controllers"
@@ -21,12 +22,12 @@ type MockRouteService struct {
 	mock.Mock
 }
 
-func (m *MockRouteService) GetAllRoutes() ([]models.Route, error) {
-	args := m.Called()
+func (m *MockRouteService) GetAllRoutes(page, limit int) ([]models.Route, int64, error) {
+	args := m.Called(page, limit)
 	if args.Get(0) != nil {
-		return args.Get(0).([]models.Route), args.Error(1)
+		return args.Get(0).([]models.Route), args.Get(1).(int64), args.Error(2)
 	}
-	return nil, args.Error(1)
+	return nil, 0, args.Error(2)
 }
 
 func (m *MockRouteService) CreateRoute(route *models.Route) error {
@@ -51,7 +52,7 @@ func TestRouteController_GetRoutes(t *testing.T) {
 		mockRoutes := []models.Route{
 			{ID: uuid.New(), OriginCity: "Jakarta", DestinationCity: "Bandung"},
 		}
-		mockService.On("GetAllRoutes").Return(mockRoutes, nil).Once()
+		mockService.On("GetAllRoutes", 1, 10).Return(mockRoutes, int64(1), nil).Once()
 
 		req, _ := http.NewRequest(http.MethodGet, "/api/admin/routes", nil)
 		w := httptest.NewRecorder()
@@ -65,7 +66,12 @@ func TestRouteController_GetRoutes(t *testing.T) {
 		assert.Equal(t, "success", response["status"])
 		assert.Equal(t, "Routes retrieved successfully", response["message"])
 		
-		data := response["data"].([]interface{})
+		dataMap := response["data"].(map[string]interface{})
+		assert.Equal(t, float64(1), dataMap["total_count"])
+		assert.Equal(t, float64(1), dataMap["page"])
+		assert.Equal(t, float64(10), dataMap["limit"])
+		
+		data := dataMap["data"].([]interface{})
 		assert.Len(t, data, 1)
 		
 		route := data[0].(map[string]interface{})
@@ -75,7 +81,7 @@ func TestRouteController_GetRoutes(t *testing.T) {
 	})
 
 	t.Run("Service Error", func(t *testing.T) {
-		mockService.On("GetAllRoutes").Return(nil, errors.New("service error")).Once()
+		mockService.On("GetAllRoutes", 1, 10).Return(nil, int64(0), errors.New("service error")).Once()
 
 		req, _ := http.NewRequest(http.MethodGet, "/api/admin/routes", nil)
 		w := httptest.NewRecorder()
@@ -98,17 +104,10 @@ func TestRouteController_CreateRoute(t *testing.T) {
 	r := setupRouteRouter(mockService)
 
 	t.Run("Success", func(t *testing.T) {
-		payload := map[string]string{
-			"OriginCity":      "Jakarta",
-			"OriginPool":      "Pool Kebon Jeruk",
-			"DestinationCity": "Bandung",
-			"DestinationPool": "Pool Pasteur",
-		}
-		body, _ := json.Marshal(payload)
-
+		reqBody := `{"origin_city": "Jakarta", "origin_pool": "Pool Kebon Jeruk", "destination_city": "Bandung", "destination_pool": "Pool Pasteur"}`
 		mockService.On("CreateRoute", mock.AnythingOfType("*models.Route")).Return(nil).Once()
 
-		req, _ := http.NewRequest(http.MethodPost, "/api/admin/routes", bytes.NewBuffer(body))
+		req, _ := http.NewRequest(http.MethodPost, "/api/admin/routes", bytes.NewBuffer([]byte(reqBody)))
 		w := httptest.NewRecorder()
 
 		r.ServeHTTP(w, req)
@@ -124,37 +123,26 @@ func TestRouteController_CreateRoute(t *testing.T) {
 	})
 
 	t.Run("Invalid Payload", func(t *testing.T) {
-		payload := map[string]string{
-			"OriginCity": "Jakarta",
-			// Missing required fields
-		}
-		body, _ := json.Marshal(payload)
+		reqBody := `{"origin_city": "Jakarta"}`
 
-		req, _ := http.NewRequest(http.MethodPost, "/api/admin/routes", bytes.NewBuffer(body))
+		req, _ := http.NewRequest(http.MethodPost, "/api/admin/routes", strings.NewReader(reqBody))
 		w := httptest.NewRecorder()
-
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 		
 		var response map[string]interface{}
 		json.Unmarshal(w.Body.Bytes(), &response)
+		
 		assert.Equal(t, "error", response["status"])
-		assert.Equal(t, "Invalid request payload", response["error"])
+		assert.Equal(t, "Validation failed", response["error"])
 	})
 
 	t.Run("Service Error", func(t *testing.T) {
-		payload := map[string]string{
-			"OriginCity":      "Jakarta",
-			"OriginPool":      "Pool Kebon Jeruk",
-			"DestinationCity": "Bandung",
-			"DestinationPool": "Pool Pasteur",
-		}
-		body, _ := json.Marshal(payload)
+		reqBody := `{"origin_city": "Jakarta", "origin_pool": "Pool Kebon Jeruk", "destination_city": "Bandung", "destination_pool": "Pool Pasteur"}`
+		mockService.On("CreateRoute", mock.AnythingOfType("*models.Route")).Return(errors.New("db error")).Once()
 
-		mockService.On("CreateRoute", mock.AnythingOfType("*models.Route")).Return(errors.New("service error")).Once()
-
-		req, _ := http.NewRequest(http.MethodPost, "/api/admin/routes", bytes.NewBuffer(body))
+		req, _ := http.NewRequest(http.MethodPost, "/api/admin/routes", bytes.NewBuffer([]byte(reqBody)))
 		w := httptest.NewRecorder()
 
 		r.ServeHTTP(w, req)
