@@ -8,4 +8,5 @@ var (
 	ErrJWTSecretNotSet     = errors.New("JWT_SECRET is not configured")
 	ErrValidation          = errors.New("validation failed")
 	ErrInternalServerError = errors.New("internal server error")
+	ErrRouteNotFound       = errors.New("route not found")
 )

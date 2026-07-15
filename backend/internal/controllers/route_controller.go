@@ -67,3 +67,25 @@ func (c *RouteController) CreateRoute(ctx *gin.Context) {
 
 	utils.SuccessResponse(ctx, http.StatusCreated, "Route created successfully", route)
 }
+
+func (c *RouteController) UpdateRoute(ctx *gin.Context) {
+	id := ctx.Param("id")
+	var input dto.UpdateRouteRequest
+
+	if err := ctx.ShouldBindJSON(&input); err != nil {
+		utils.ValidationErrorResponse(ctx, http.StatusBadRequest, utils.FormatValidationErrors(err))
+		return
+	}
+
+	route, err := c.routeService.UpdateRoute(id, &input)
+	if err != nil {
+		if err.Error() == "record not found" {
+			utils.ErrorResponse(ctx, http.StatusNotFound, "Route not found")
+			return
+		}
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to update route")
+		return
+	}
+
+	utils.SuccessResponse(ctx, http.StatusOK, "Route updated successfully", route)
+}

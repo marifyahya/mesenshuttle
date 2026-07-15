@@ -9,6 +9,8 @@ import (
 type RouteRepository interface {
 	FindAll(page, limit int) ([]models.Route, int64, error)
 	Create(route *models.Route) error
+	FindByID(id string) (*models.Route, error)
+	Update(route *models.Route) error
 }
 
 type routeRepository struct {
@@ -36,6 +38,21 @@ func (r *routeRepository) FindAll(page, limit int) ([]models.Route, int64, error
 
 func (r *routeRepository) Create(route *models.Route) error {
 	if err := r.db.Create(route).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *routeRepository) FindByID(id string) (*models.Route, error) {
+	var route models.Route
+	if err := r.db.Where("id = ?", id).First(&route).Error; err != nil {
+		return nil, err
+	}
+	return &route, nil
+}
+
+func (r *routeRepository) Update(route *models.Route) error {
+	if err := r.db.Save(route).Error; err != nil {
 		return err
 	}
 	return nil

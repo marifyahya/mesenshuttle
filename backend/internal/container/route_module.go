@@ -25,4 +25,5 @@ func (m *RouteModule) RegisterRoutes(public *gin.RouterGroup, protected *gin.Rou
 	routeGroup := protected.Group("/routes")
 	routeGroup.GET("", m.controller.GetRoutes)
 	routeGroup.POST("", m.controller.CreateRoute)
+	routeGroup.PUT("/:id", m.controller.UpdateRoute)
 }

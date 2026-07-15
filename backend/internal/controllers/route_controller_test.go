@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"mesenshuttle-backend/internal/controllers"
+	"mesenshuttle-backend/internal/dto"
 	"mesenshuttle-backend/internal/models"
 
 	"github.com/gin-gonic/gin"
@@ -35,12 +36,21 @@ func (m *MockRouteService) CreateRoute(route *models.Route) error {
 	return args.Error(0)
 }
 
+func (m *MockRouteService) UpdateRoute(id string, input *dto.UpdateRouteRequest) (*models.Route, error) {
+	args := m.Called(id, input)
+	if args.Get(0) != nil {
+		return args.Get(0).(*models.Route), args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
 func setupRouteRouter(routeService *MockRouteService) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()
 	routeController := controllers.NewRouteController(routeService)
 	r.GET("/api/admin/routes", routeController.GetRoutes)
 	r.POST("/api/admin/routes", routeController.CreateRoute)
+	r.PUT("/api/admin/routes/:id", routeController.UpdateRoute)
 	return r
 }
 
@@ -153,6 +163,97 @@ func TestRouteController_CreateRoute(t *testing.T) {
 		json.Unmarshal(w.Body.Bytes(), &response)
 		assert.Equal(t, "error", response["status"])
 		assert.Equal(t, "Failed to create route", response["error"])
+
+		mockService.AssertExpectations(t)
+	})
+}
+
+func TestRouteController_UpdateRoute(t *testing.T) {
+	mockService := new(MockRouteService)
+	r := setupRouteRouter(mockService)
+	routeID := uuid.New().String()
+
+	t.Run("Success", func(t *testing.T) {
+		reqBody := `{"origin_city": "New Jakarta", "origin_pool": "New Pool", "destination_city": "New Bandung", "destination_pool": "New Pool 2"}`
+		
+		expectedRoute := &models.Route{
+			ID:              uuid.MustParse(routeID),
+			OriginCity:      "New Jakarta",
+			OriginPool:      "New Pool",
+			DestinationCity: "New Bandung",
+			DestinationPool: "New Pool 2",
+		}
+		
+		mockService.On("UpdateRoute", routeID, mock.AnythingOfType("*dto.UpdateRouteRequest")).Return(expectedRoute, nil).Once()
+
+		req, _ := http.NewRequest(http.MethodPut, "/api/admin/routes/"+routeID, bytes.NewBuffer([]byte(reqBody)))
+		w := httptest.NewRecorder()
+
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var response map[string]interface{}
+		json.Unmarshal(w.Body.Bytes(), &response)
+		assert.Equal(t, "success", response["status"])
+		assert.Equal(t, "Route updated successfully", response["message"])
+		
+		data := response["data"].(map[string]interface{})
+		assert.Equal(t, "New Jakarta", data["origin_city"])
+
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Invalid Payload", func(t *testing.T) {
+		reqBody := `{"origin_city": "Jakarta"}` // Missing fields
+
+		req, _ := http.NewRequest(http.MethodPut, "/api/admin/routes/"+routeID, strings.NewReader(reqBody))
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+		var response map[string]interface{}
+		json.Unmarshal(w.Body.Bytes(), &response)
+
+		assert.Equal(t, "error", response["status"])
+		assert.Equal(t, "Validation failed", response["error"])
+	})
+
+	t.Run("Route Not Found", func(t *testing.T) {
+		reqBody := `{"origin_city": "Jakarta", "origin_pool": "Pool Kebon Jeruk", "destination_city": "Bandung", "destination_pool": "Pool Pasteur"}`
+		mockService.On("UpdateRoute", routeID, mock.AnythingOfType("*dto.UpdateRouteRequest")).Return(nil, errors.New("record not found")).Once()
+
+		req, _ := http.NewRequest(http.MethodPut, "/api/admin/routes/"+routeID, bytes.NewBuffer([]byte(reqBody)))
+		w := httptest.NewRecorder()
+
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+
+		var response map[string]interface{}
+		json.Unmarshal(w.Body.Bytes(), &response)
+		assert.Equal(t, "error", response["status"])
+		assert.Equal(t, "Route not found", response["error"])
+
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Service Error", func(t *testing.T) {
+		reqBody := `{"origin_city": "Jakarta", "origin_pool": "Pool Kebon Jeruk", "destination_city": "Bandung", "destination_pool": "Pool Pasteur"}`
+		mockService.On("UpdateRoute", routeID, mock.AnythingOfType("*dto.UpdateRouteRequest")).Return(nil, errors.New("db error")).Once()
+
+		req, _ := http.NewRequest(http.MethodPut, "/api/admin/routes/"+routeID, bytes.NewBuffer([]byte(reqBody)))
+		w := httptest.NewRecorder()
+
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+		var response map[string]interface{}
+		json.Unmarshal(w.Body.Bytes(), &response)
+		assert.Equal(t, "error", response["status"])
+		assert.Equal(t, "Failed to update route", response["error"])
 
 		mockService.AssertExpectations(t)
 	})

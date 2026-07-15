@@ -4,6 +4,7 @@ import (
 	"errors"
 	"testing"
 
+	"mesenshuttle-backend/internal/dto"
 	"mesenshuttle-backend/internal/models"
 	"mesenshuttle-backend/internal/services"
 
@@ -25,6 +26,19 @@ func (m *MockRouteRepository) FindAll(page, limit int) ([]models.Route, int64, e
 }
 
 func (m *MockRouteRepository) Create(route *models.Route) error {
+	args := m.Called(route)
+	return args.Error(0)
+}
+
+func (m *MockRouteRepository) FindByID(id string) (*models.Route, error) {
+	args := m.Called(id)
+	if args.Get(0) != nil {
+		return args.Get(0).(*models.Route), args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
+func (m *MockRouteRepository) Update(route *models.Route) error {
 	args := m.Called(route)
 	return args.Error(0)
 }
@@ -84,6 +98,59 @@ func TestRouteService_CreateRoute(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Equal(t, "db error", err.Error())
+		mockRepo.AssertExpectations(t)
+	})
+}
+
+func TestRouteService_UpdateRoute(t *testing.T) {
+	mockRepo := new(MockRouteRepository)
+	routeService := services.NewRouteService(mockRepo)
+	
+	routeID := uuid.New().String()
+
+	t.Run("Success", func(t *testing.T) {
+		existingRoute := &models.Route{OriginCity: "Jakarta", DestinationCity: "Bandung"}
+		input := &dto.UpdateRouteRequest{
+			OriginCity:      "New Jakarta",
+			OriginPool:      "New Pool JKT",
+			DestinationCity: "New Bandung",
+			DestinationPool: "New Pool BDG",
+		}
+		
+		mockRepo.On("FindByID", routeID).Return(existingRoute, nil).Once()
+		mockRepo.On("Update", existingRoute).Return(nil).Once()
+
+		route, err := routeService.UpdateRoute(routeID, input)
+
+		assert.NoError(t, err)
+		assert.Equal(t, "New Jakarta", route.OriginCity)
+		assert.Equal(t, "New Pool BDG", route.DestinationPool)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("Not Found", func(t *testing.T) {
+		input := &dto.UpdateRouteRequest{}
+		mockRepo.On("FindByID", routeID).Return(nil, errors.New("record not found")).Once()
+
+		route, err := routeService.UpdateRoute(routeID, input)
+
+		assert.Error(t, err)
+		assert.Nil(t, route)
+		assert.Equal(t, "record not found", err.Error())
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("Update Error", func(t *testing.T) {
+		existingRoute := &models.Route{OriginCity: "Jakarta"}
+		input := &dto.UpdateRouteRequest{}
+		mockRepo.On("FindByID", routeID).Return(existingRoute, nil).Once()
+		mockRepo.On("Update", existingRoute).Return(errors.New("db update error")).Once()
+
+		route, err := routeService.UpdateRoute(routeID, input)
+
+		assert.Error(t, err)
+		assert.Nil(t, route)
+		assert.Equal(t, "db update error", err.Error())
 		mockRepo.AssertExpectations(t)
 	})
 }

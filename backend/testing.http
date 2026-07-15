@@ -23,3 +23,16 @@ Authorization: Bearer {{login.response.body.data.token}}
   "destination_city": "Bandung",
   "destination_pool": "Pool Pasteur"
 }
+
+### Update a Route
+# Replace {id} with an actual route ID from the GET response
+PUT http://localhost:8081/api/admin/routes/ed488e3c-cc61-47dd-84d8-b81b35e71890
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.data.token}}
+
+{
+  "origin_city": "Jakarta",
+  "origin_pool": "Pool Kebon Jeruk Baru 2",
+  "destination_city": "Bandung",
+  "destination_pool": "Pool Pasteur Baru"
+}
