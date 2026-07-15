@@ -44,6 +44,11 @@ func (m *MockRouteService) UpdateRoute(id string, input *dto.UpdateRouteRequest)
 	return nil, args.Error(1)
 }
 
+func (m *MockRouteService) DeleteRoute(id string) error {
+	args := m.Called(id)
+	return args.Error(0)
+}
+
 func setupRouteRouter(routeService *MockRouteService) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()
@@ -51,6 +56,7 @@ func setupRouteRouter(routeService *MockRouteService) *gin.Engine {
 	r.GET("/api/admin/routes", routeController.GetRoutes)
 	r.POST("/api/admin/routes", routeController.CreateRoute)
 	r.PUT("/api/admin/routes/:id", routeController.UpdateRoute)
+	r.DELETE("/api/admin/routes/:id", routeController.DeleteRoute)
 	return r
 }
 
@@ -254,6 +260,66 @@ func TestRouteController_UpdateRoute(t *testing.T) {
 		json.Unmarshal(w.Body.Bytes(), &response)
 		assert.Equal(t, "error", response["status"])
 		assert.Equal(t, "Failed to update route", response["error"])
+
+		mockService.AssertExpectations(t)
+	})
+}
+
+func TestRouteController_DeleteRoute(t *testing.T) {
+	mockService := new(MockRouteService)
+	r := setupRouteRouter(mockService)
+	routeID := uuid.New().String()
+
+	t.Run("Success", func(t *testing.T) {
+		mockService.On("DeleteRoute", routeID).Return(nil).Once()
+
+		req, _ := http.NewRequest(http.MethodDelete, "/api/admin/routes/"+routeID, nil)
+		w := httptest.NewRecorder()
+
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var response map[string]interface{}
+		json.Unmarshal(w.Body.Bytes(), &response)
+		assert.Equal(t, "success", response["status"])
+		assert.Equal(t, "Route deleted successfully", response["message"])
+
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Route Not Found", func(t *testing.T) {
+		mockService.On("DeleteRoute", routeID).Return(errors.New("record not found")).Once()
+
+		req, _ := http.NewRequest(http.MethodDelete, "/api/admin/routes/"+routeID, nil)
+		w := httptest.NewRecorder()
+
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+
+		var response map[string]interface{}
+		json.Unmarshal(w.Body.Bytes(), &response)
+		assert.Equal(t, "error", response["status"])
+		assert.Equal(t, "Route not found", response["error"])
+
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Service Error", func(t *testing.T) {
+		mockService.On("DeleteRoute", routeID).Return(errors.New("db error")).Once()
+
+		req, _ := http.NewRequest(http.MethodDelete, "/api/admin/routes/"+routeID, nil)
+		w := httptest.NewRecorder()
+
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+		var response map[string]interface{}
+		json.Unmarshal(w.Body.Bytes(), &response)
+		assert.Equal(t, "error", response["status"])
+		assert.Equal(t, "Failed to delete route", response["error"])
 
 		mockService.AssertExpectations(t)
 	})

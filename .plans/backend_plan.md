@@ -154,7 +154,7 @@ sequenceDiagram
 - `[x]` As a FE, I want to have endpoint to get list of Routes (`GET /api/admin/routes`).
 - `[x]` As a FE, I want to have endpoint to create a new Route (`POST /api/admin/routes`).
 - `[x]` As a FE, I want to have endpoint to update a Route (`PUT /api/admin/routes/:id`).
-- `[ ]` As a FE, I want to have endpoint to delete a Route (`DELETE /api/admin/routes/:id`).
+- `[x]` As a FE, I want to have endpoint to delete a Route (`DELETE /api/admin/routes/:id`).
 - `[ ]` As a FE, I want to have endpoint to get list of Fleets (`GET /api/admin/fleets`).
 - `[ ]` As a FE, I want to have endpoint to create a new Fleet (`POST /api/admin/fleets`).
 - `[ ]` As a FE, I want to have endpoint to update a Fleet (`PUT /api/admin/fleets/:id`).

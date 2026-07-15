@@ -10,6 +10,7 @@ type RouteService interface {
 	GetAllRoutes(page, limit int) ([]models.Route, int64, error)
 	CreateRoute(route *models.Route) error
 	UpdateRoute(id string, input *dto.UpdateRouteRequest) (*models.Route, error)
+	DeleteRoute(id string) error
 }
 
 type routeService struct {
@@ -44,4 +45,17 @@ func (s *routeService) UpdateRoute(id string, input *dto.UpdateRouteRequest) (*m
 	}
 
 	return route, nil
+}
+
+func (s *routeService) DeleteRoute(id string) error {
+	route, err := s.routeRepo.FindByID(id)
+	if err != nil {
+		return err
+	}
+
+	if err := s.routeRepo.Delete(route); err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -11,6 +11,7 @@ type RouteRepository interface {
 	Create(route *models.Route) error
 	FindByID(id string) (*models.Route, error)
 	Update(route *models.Route) error
+	Delete(route *models.Route) error
 }
 
 type routeRepository struct {
@@ -53,6 +54,13 @@ func (r *routeRepository) FindByID(id string) (*models.Route, error) {
 
 func (r *routeRepository) Update(route *models.Route) error {
 	if err := r.db.Save(route).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *routeRepository) Delete(route *models.Route) error {
+	if err := r.db.Delete(route).Error; err != nil {
 		return err
 	}
 	return nil

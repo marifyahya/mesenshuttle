@@ -36,3 +36,8 @@ Authorization: Bearer {{login.response.body.data.token}}
   "destination_city": "Bandung",
   "destination_pool": "Pool Pasteur Baru"
 }
+
+### Delete a Route
+# Replace {id} with an actual route ID from the GET response
+DELETE http://localhost:8081/api/admin/routes/ed488e3c-cc61-47dd-84d8-b81b35e71890
+Authorization: Bearer {{login.response.body.data.token}}

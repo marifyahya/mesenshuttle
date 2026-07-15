@@ -19,7 +19,7 @@ MesenShuttle solves this using **Redis Lua Scripts** for atomic seat locking: th
 | Feature | Status |
 |---|---|
 | Admin Authentication (JWT) | ✅ Done |
-| Route Management (GET, POST, PUT) | ✅ Done |
+| Route Management (GET, POST, PUT, DELETE) | ✅ Done |
 | Fleet & Schedule Management | 📋 Planned |
 | Seat Map + Redis Atomic Locking | 📋 Planned |
 | Xendit Payment Integration | 📋 Planned |

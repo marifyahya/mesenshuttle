@@ -154,3 +154,49 @@ func TestRouteService_UpdateRoute(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 	})
 }
+
+func (m *MockRouteRepository) Delete(route *models.Route) error {
+	args := m.Called(route)
+	return args.Error(0)
+}
+
+func TestRouteService_DeleteRoute(t *testing.T) {
+	mockRepo := new(MockRouteRepository)
+	routeService := services.NewRouteService(mockRepo)
+	
+	routeID := uuid.New().String()
+
+	t.Run("Success", func(t *testing.T) {
+		existingRoute := &models.Route{ID: uuid.MustParse(routeID)}
+		
+		mockRepo.On("FindByID", routeID).Return(existingRoute, nil).Once()
+		mockRepo.On("Delete", existingRoute).Return(nil).Once()
+
+		err := routeService.DeleteRoute(routeID)
+
+		assert.NoError(t, err)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("Not Found", func(t *testing.T) {
+		mockRepo.On("FindByID", routeID).Return(nil, errors.New("record not found")).Once()
+
+		err := routeService.DeleteRoute(routeID)
+
+		assert.Error(t, err)
+		assert.Equal(t, "record not found", err.Error())
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("Delete Error", func(t *testing.T) {
+		existingRoute := &models.Route{ID: uuid.MustParse(routeID)}
+		mockRepo.On("FindByID", routeID).Return(existingRoute, nil).Once()
+		mockRepo.On("Delete", existingRoute).Return(errors.New("db delete error")).Once()
+
+		err := routeService.DeleteRoute(routeID)
+
+		assert.Error(t, err)
+		assert.Equal(t, "db delete error", err.Error())
+		mockRepo.AssertExpectations(t)
+	})
+}

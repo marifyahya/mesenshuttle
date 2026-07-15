@@ -89,3 +89,19 @@ func (c *RouteController) UpdateRoute(ctx *gin.Context) {
 
 	utils.SuccessResponse(ctx, http.StatusOK, "Route updated successfully", route)
 }
+
+func (c *RouteController) DeleteRoute(ctx *gin.Context) {
+	id := ctx.Param("id")
+
+	err := c.routeService.DeleteRoute(id)
+	if err != nil {
+		if err.Error() == "record not found" {
+			utils.ErrorResponse(ctx, http.StatusNotFound, "Route not found")
+			return
+		}
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to delete route")
+		return
+	}
+
+	utils.SuccessResponse(ctx, http.StatusOK, "Route deleted successfully", nil)
+}
