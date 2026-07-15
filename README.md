@@ -2,6 +2,8 @@
 
 > A full-stack shuttle bus booking platform built to solve the real-world problem of concurrent seat reservations — without requiring user registration.
 
+![MesenShuttle Demo](./demo.png)
+
 ---
 
 ## The Problem

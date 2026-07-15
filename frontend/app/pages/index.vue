@@ -35,7 +35,7 @@
           </UFormField>
           <UFormField label="Date" name="date" class="font-medium">
             <UPopover class="w-full">
-              <UButton color="neutral" icon="i-lucide-calendar" class="w-full justify-between text-gray-700 shadow-sm ring-1 ring-gray-200" size="xl">
+              <UButton color="white" icon="i-lucide-calendar" class="w-full justify-between text-gray-700 shadow-sm ring-1 ring-gray-200" size="xl">
                 {{ formattedDate }}
               </UButton>
               <template #content>
