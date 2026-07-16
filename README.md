@@ -20,7 +20,8 @@ MesenShuttle solves this using **Redis Lua Scripts** for atomic seat locking: th
 |---|---|
 | Admin Authentication (JWT) | ✅ Done |
 | Route Management (GET, POST, PUT, DELETE) | ✅ Done |
-| Fleet & Schedule Management | 📋 Planned |
+| Fleet Management (GET) | ✅ Done |
+| Schedule Management | 📋 Planned |
 | Seat Map + Redis Atomic Locking | 📋 Planned |
 | Xendit Payment Integration | 📋 Planned |
 | Asynq Background Email Queue | 📋 Planned |
@@ -90,6 +91,7 @@ erDiagram
     }
     FLEETS {
         uuid id PK
+        varchar name
         varchar plate_number "UNIQUE"
         varchar type "Premium/Reguler"
         int total_seats
@@ -231,9 +233,13 @@ docker compose up -d --build
 ```bash
 # Backend
 cd backend
-go mod tidy
-go run ./cmd/cli -migrate   # run migrations first
-go run ./cmd/cli -seed      # seed admin account
+go run ./cmd/cli -migrate         # Run database migrations
+go run ./cmd/cli -seed            # Seed initial admin user
+
+You can also use these migration commands:
+go run ./cmd/cli -migrate-status  # Check migration status
+go run ./cmd/cli -rollback        # Rollback the last migration
+
 go run ./cmd/api            # start the API server
 
 # Frontend
@@ -248,6 +254,37 @@ npm run dev
 
 ```bash
 docker compose -f docker-compose.yml up -d --build
+```
+
+---
+
+## 🗄️ Database Migrations (Goose)
+
+This project uses `pressly/goose` for safe, versioned database migrations. All migration files are located in `backend/db/migrations/`.
+
+**1. Create a new migration file:**
+If you need to alter the database schema, install goose CLI (`go install github.com/pressly/goose/v3/cmd/goose@latest`) and run:
+```bash
+goose -dir backend/db/migrations create add_capacity_to_fleets sql
+```
+*This will generate a new timestamped `.sql` file with `-- +goose Up` and `-- +goose Down` blocks where you can write your raw SQL.*
+
+**2. Apply migrations:**
+```bash
+cd backend
+go run ./cmd/cli -migrate
+```
+
+**3. Check migration status:**
+```bash
+cd backend
+go run ./cmd/cli -migrate-status
+```
+
+**4. Rollback the last migration:**
+```bash
+cd backend
+go run ./cmd/cli -rollback
 ```
 
 ---
@@ -272,7 +309,8 @@ go test -v ./...
 
 ## Known Limitations & Roadmap
 
-- **Migrations**: Using GORM `AutoMigrate` via CLI. Production-grade versioned migrations ([golang-migrate](https://github.com/golang-migrate/migrate)) are the next step.
+- **Migrations**: The project uses `pressly/goose` for robust, versioned SQL migrations located in `backend/db/migrations`.
+- **Payment Handling**: The frontend does not process payments directly. All state transitions happen exclusively through the webhook.
 - **Rate Limiting**: Currently IP + User-Agent based on the login endpoint. A JWT-scoped approach would be more robust for authenticated routes.
 - **Tests**: Only unit tests with mocks exist today. Integration tests against a real test database are planned.
 - **Phases 3–5**: Seat map, payment integration, and email queue are planned (see `.plans/backend_plan.md` for full execution roadmap).
