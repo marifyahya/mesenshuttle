@@ -24,10 +24,12 @@ func main() {
 
 	authModule := container.NewAuthModule(db, cfg, redisClient)
 	routeModule := container.NewRouteModule(db)
+	fleetModule := container.NewFleetModule(db)
 
 	modules := []container.Module{
 		authModule,
 		routeModule,
+		fleetModule,
 	}
 
 	r := routes.SetupRouter(modules, cfg.JWTSecret, redisClient)

@@ -39,5 +39,22 @@ Authorization: Bearer {{login.response.body.data.token}}
 
 ### Delete a Route
 # Replace {id} with an actual route ID from the GET response
-DELETE http://localhost:8081/api/admin/routes/ed488e3c-cc61-47dd-84d8-b81b35e71890
+# @name id = ed488e3c-cc61-47dd-84d8-b81b35e71890
+DELETE http://localhost:8081/api/admin/routes/{id}
 Authorization: Bearer {{login.response.body.data.token}}
+
+### Get All Fleets
+GET http://localhost:8081/api/admin/fleets?page=1&limit=10
+Authorization: Bearer {{login.response.body.data.token}}
+
+### Create a Fleet
+POST http://localhost:8081/api/admin/fleets
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.data.token}}
+
+{
+  "name": "Armada 1",
+  "plate_number": "B 1234 XYZ",
+  "type": "Premium",
+  "total_seats": 14
+}

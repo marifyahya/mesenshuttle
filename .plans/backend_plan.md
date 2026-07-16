@@ -51,9 +51,12 @@ erDiagram
     FLEETS {
         uuid id PK
         varchar(100) name
+        varchar(20) plate_number "UNIQUE, INDEX"
         varchar(50) type "Premium/Reguler"
-        int capacity
+        int total_seats
+        bool active_status
         datetime created_at
+        datetime updated_at
     }
     SCHEDULES {
         uuid id PK
@@ -147,6 +150,7 @@ sequenceDiagram
 **Phase 1: Initialization & Environment Setup**
 - `[x]` As a BE, I want to setup project Golang (`mesenshuttle-backend`).
 - `[x]` As a BE, I want to setup Database MySQL and GORM Auto-migration.
+- `[x]` As a BE, I want to replace AutoMigrate with Goose versioned migrations.
 - `[x]` As a BE, I want to setup Redis connection.
 
 **Phase 2: Admin API Development (Master Data & Auth)**
@@ -155,8 +159,8 @@ sequenceDiagram
 - `[x]` As a FE, I want to have endpoint to create a new Route (`POST /api/admin/routes`).
 - `[x]` As a FE, I want to have endpoint to update a Route (`PUT /api/admin/routes/:id`).
 - `[x]` As a FE, I want to have endpoint to delete a Route (`DELETE /api/admin/routes/:id`).
-- `[ ]` As a FE, I want to have endpoint to get list of Fleets (`GET /api/admin/fleets`).
-- `[ ]` As a FE, I want to have endpoint to create a new Fleet (`POST /api/admin/fleets`).
+- `[x]` As a FE, I want to have endpoint to get list of Fleets (`GET /api/admin/fleets`).
+- `[x]` As a FE, I want to have endpoint to create a new Fleet (`POST /api/admin/fleets`).
 - `[ ]` As a FE, I want to have endpoint to update a Fleet (`PUT /api/admin/fleets/:id`).
 - `[ ]` As a FE, I want to have endpoint to delete a Fleet (`DELETE /api/admin/fleets/:id`).
 - `[ ]` As a FE, I want to have endpoint to get list of Schedules (`GET /api/admin/schedules`).

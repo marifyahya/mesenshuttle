@@ -2,11 +2,27 @@ package utils
 
 import (
 	"errors"
+	"fmt"
+	"reflect"
+	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 	"mesenshuttle-backend/internal/dto"
 )
+
+func init() {
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		v.RegisterTagNameFunc(func(fld reflect.StructField) string {
+			name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+			if name == "-" {
+				return ""
+			}
+			return name
+		})
+	}
+}
 
 type APIResponse struct {
 	Status  string      `json:"status"`
@@ -38,12 +54,29 @@ func ValidationErrorResponse(c *gin.Context, statusCode int, errors interface{})
 	})
 }
 
+func getErrorMsg(fe validator.FieldError) string {
+	switch fe.Tag() {
+	case "required":
+		return "this field is required"
+	case "oneof":
+		return fmt.Sprintf("must be one of: %s", strings.ReplaceAll(fe.Param(), " ", ", "))
+	case "min":
+		return fmt.Sprintf("must be at least %s", fe.Param())
+	case "max":
+		return fmt.Sprintf("must be at most %s", fe.Param())
+	case "email":
+		return "must be a valid email address"
+	default:
+		return fe.Tag()
+	}
+}
+
 func FormatValidationErrors(err error) []dto.FieldError {
 	var fieldErrs []dto.FieldError
 	var ve validator.ValidationErrors
 	if errors.As(err, &ve) {
 		for _, fe := range ve {
-			fieldErrs = append(fieldErrs, dto.FieldError{Field: fe.Field(), Message: fe.Tag()})
+			fieldErrs = append(fieldErrs, dto.FieldError{Field: fe.Field(), Message: getErrorMsg(fe)})
 		}
 	} else {
 		fieldErrs = append(fieldErrs, dto.FieldError{Field: "payload", Message: err.Error()})
