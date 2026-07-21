@@ -25,4 +25,5 @@ func (m *FleetModule) RegisterRoutes(public *gin.RouterGroup, protected *gin.Rou
 	fleetGroup := protected.Group("/fleets")
 	fleetGroup.GET("", m.controller.GetFleets)
 	fleetGroup.POST("", m.controller.CreateFleet)
+	fleetGroup.PUT("/:id", m.controller.UpdateFleet)
 }

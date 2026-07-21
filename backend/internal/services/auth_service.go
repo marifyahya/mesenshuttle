@@ -31,23 +31,23 @@ func (s *authService) Login(email, password string) (string, *models.Admin, erro
 	admin, err := s.adminRepo.FindByEmail(email)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return "", nil, apperrors.ErrInvalidCredentials
+			return "", nil, apperrors.NewUnauthorized("invalid email or password")
 		}
 		return "", nil, err
 	}
 
 	if !utils.CheckPasswordHash(password, admin.PasswordHash) {
-		return "", nil, apperrors.ErrInvalidCredentials
+		return "", nil, apperrors.NewUnauthorized("invalid email or password")
 	}
 
 	secret := s.cfg.JWTSecret
 	if secret == "" {
-		return "", nil, apperrors.ErrJWTSecretNotSet
+		return "", nil, apperrors.New(500, "JWT_SECRET is not configured")
 	}
 
 	token, err := utils.GenerateToken(admin.ID, admin.Email, secret)
 	if err != nil {
-		return "", nil, apperrors.ErrTokenGeneration
+		return "", nil, apperrors.New(500, "failed to generate token")
 	}
 
 	return token, admin, nil

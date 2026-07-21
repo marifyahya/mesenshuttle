@@ -79,11 +79,7 @@ func (c *RouteController) UpdateRoute(ctx *gin.Context) {
 
 	route, err := c.routeService.UpdateRoute(id, &input)
 	if err != nil {
-		if err.Error() == "record not found" {
-			utils.ErrorResponse(ctx, http.StatusNotFound, "Route not found")
-			return
-		}
-		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to update route")
+		utils.HandleError(ctx, err)
 		return
 	}
 
@@ -95,11 +91,7 @@ func (c *RouteController) DeleteRoute(ctx *gin.Context) {
 
 	err := c.routeService.DeleteRoute(id)
 	if err != nil {
-		if err.Error() == "record not found" {
-			utils.ErrorResponse(ctx, http.StatusNotFound, "Route not found")
-			return
-		}
-		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to delete route")
+		utils.HandleError(ctx, err)
 		return
 	}
 

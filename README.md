@@ -20,7 +20,7 @@ MesenShuttle solves this using **Redis Lua Scripts** for atomic seat locking: th
 |---|---|
 | Admin Authentication (JWT) | ✅ Done |
 | Route Management (GET, POST, PUT, DELETE) | ✅ Done |
-| Fleet Management (GET) | ✅ Done |
+| Fleet Management (GET, POST, PUT) | ✅ Done |
 | Schedule Management | 📋 Planned |
 | Seat Map + Redis Atomic Locking | 📋 Planned |
 | Xendit Payment Integration | 📋 Planned |
@@ -195,9 +195,9 @@ backend/
 │   ├── middlewares/  # JWT auth, rate limiter, structured logger
 │   └── models/       # GORM database models
 └── pkg/
-    ├── apperrors/    # Sentinel errors (ErrInvalidCredentials, etc.)
+    ├── apperrors/    # Typed AppError factories (NewNotFound, NewDuplicateField, NewUnauthorized)
     ├── database/     # MySQL & Redis initializers
-    └── utils/        # JWT, bcrypt, response helpers
+    └── utils/        # JWT, bcrypt, response helpers (HandleError, FormatValidationErrors)
 ```
 
 ---

@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"mesenshuttle-backend/internal/controllers"
+	"mesenshuttle-backend/internal/dto"
 	"mesenshuttle-backend/internal/models"
 	"mesenshuttle-backend/pkg/apperrors"
 
@@ -35,12 +36,21 @@ func (m *MockFleetService) CreateFleet(fleet *models.Fleet) error {
 	return args.Error(0)
 }
 
+func (m *MockFleetService) UpdateFleet(id string, req *dto.UpdateFleetRequest) (*models.Fleet, error) {
+	args := m.Called(id, req)
+	if args.Get(0) != nil {
+		return args.Get(0).(*models.Fleet), args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
 func setupFleetRouter(fleetService *MockFleetService) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()
 	fleetController := controllers.NewFleetController(fleetService)
 	r.GET("/api/admin/fleets", fleetController.GetFleets)
 	r.POST("/api/admin/fleets", fleetController.CreateFleet)
+	r.PUT("/api/admin/fleets/:id", fleetController.UpdateFleet)
 	return r
 }
 
@@ -190,14 +200,14 @@ func TestFleetController_CreateFleet(t *testing.T) {
 		var response map[string]interface{}
 		json.Unmarshal(w.Body.Bytes(), &response)
 		assert.Equal(t, "error", response["status"])
-		assert.Equal(t, "Failed to create fleet", response["error"])
+		assert.Equal(t, "Internal server error", response["error"])
 
 		mockService.AssertExpectations(t)
 	})
 
 	t.Run("Duplicate Plate Number", func(t *testing.T) {
 		reqBody := `{"name": "Armada 2", "plate_number": "B 1234 XYZ", "type": "Premium", "total_seats": 14}`
-		mockService.On("CreateFleet", mock.AnythingOfType("*models.Fleet")).Return(apperrors.ErrDuplicatePlateNumber).Once()
+		mockService.On("CreateFleet", mock.AnythingOfType("*models.Fleet")).Return(apperrors.NewDuplicateField("plate_number")).Once()
 
 		req, _ := http.NewRequest(http.MethodPost, "/api/admin/fleets", strings.NewReader(reqBody))
 		w := httptest.NewRecorder()
@@ -215,6 +225,118 @@ func TestFleetController_CreateFleet(t *testing.T) {
 		field := data[0].(map[string]interface{})
 		assert.Equal(t, "plate_number", field["field"])
 		assert.Equal(t, "plate number is already registered", field["message"])
+
+		mockService.AssertExpectations(t)
+	})
+}
+
+func TestFleetController_UpdateFleet(t *testing.T) {
+	mockService := new(MockFleetService)
+	r := setupFleetRouter(mockService)
+
+	t.Run("Success", func(t *testing.T) {
+		id := uuid.New().String()
+		reqBody := `{"name": "Armada 1 Updated", "type": "Premium"}`
+		
+		expectedFleet := &models.Fleet{
+			ID: uuid.MustParse(id),
+			Name: "Armada 1 Updated",
+			Type: "Premium",
+		}
+		
+		mockService.On("UpdateFleet", id, mock.AnythingOfType("*dto.UpdateFleetRequest")).Return(expectedFleet, nil).Once()
+
+		req, _ := http.NewRequest(http.MethodPut, "/api/admin/fleets/"+id, strings.NewReader(reqBody))
+		w := httptest.NewRecorder()
+
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var response map[string]interface{}
+		json.Unmarshal(w.Body.Bytes(), &response)
+		assert.Equal(t, "success", response["status"])
+		assert.Equal(t, "Fleet updated successfully", response["message"])
+
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Fleet Not Found", func(t *testing.T) {
+		id := uuid.New().String()
+		reqBody := `{"name": "Armada 1 Updated"}`
+		
+		mockService.On("UpdateFleet", id, mock.AnythingOfType("*dto.UpdateFleetRequest")).Return(nil, apperrors.NewNotFound("Fleet")).Once()
+
+		req, _ := http.NewRequest(http.MethodPut, "/api/admin/fleets/"+id, strings.NewReader(reqBody))
+		w := httptest.NewRecorder()
+
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+
+		var response map[string]interface{}
+		json.Unmarshal(w.Body.Bytes(), &response)
+		assert.Equal(t, "error", response["status"])
+		assert.Equal(t, "Fleet not found", response["error"])
+
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Duplicate Plate Number", func(t *testing.T) {
+		id := uuid.New().String()
+		reqBody := `{"plate_number": "B 1234 XYZ"}`
+		
+		mockService.On("UpdateFleet", id, mock.AnythingOfType("*dto.UpdateFleetRequest")).Return(nil, apperrors.NewDuplicateField("plate_number")).Once()
+
+		req, _ := http.NewRequest(http.MethodPut, "/api/admin/fleets/"+id, strings.NewReader(reqBody))
+		w := httptest.NewRecorder()
+
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+		var response map[string]interface{}
+		json.Unmarshal(w.Body.Bytes(), &response)
+		assert.Equal(t, "error", response["status"])
+		assert.Equal(t, "Validation failed", response["error"])
+
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Invalid Enum Type", func(t *testing.T) {
+		id := uuid.New().String()
+		reqBody := `{"type": "Hiace"}` // Invalid type, not Reguler or Premium
+		
+		req, _ := http.NewRequest(http.MethodPut, "/api/admin/fleets/"+id, strings.NewReader(reqBody))
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+		var response map[string]interface{}
+		json.Unmarshal(w.Body.Bytes(), &response)
+
+		assert.Equal(t, "error", response["status"])
+		assert.Equal(t, "Validation failed", response["error"])
+	})
+
+	t.Run("Service Error", func(t *testing.T) {
+		id := uuid.New().String()
+		reqBody := `{"name": "Armada 1 Updated"}`
+		
+		mockService.On("UpdateFleet", id, mock.AnythingOfType("*dto.UpdateFleetRequest")).Return(nil, errors.New("db error")).Once()
+
+		req, _ := http.NewRequest(http.MethodPut, "/api/admin/fleets/"+id, strings.NewReader(reqBody))
+		w := httptest.NewRecorder()
+
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+		var response map[string]interface{}
+		json.Unmarshal(w.Body.Bytes(), &response)
+		assert.Equal(t, "error", response["status"])
+		assert.Equal(t, "Internal server error", response["error"])
 
 		mockService.AssertExpectations(t)
 	})

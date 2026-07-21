@@ -12,6 +12,7 @@ import (
 	"mesenshuttle-backend/internal/controllers"
 	"mesenshuttle-backend/internal/dto"
 	"mesenshuttle-backend/internal/models"
+	"mesenshuttle-backend/pkg/apperrors"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -228,7 +229,7 @@ func TestRouteController_UpdateRoute(t *testing.T) {
 
 	t.Run("Route Not Found", func(t *testing.T) {
 		reqBody := `{"origin_city": "Jakarta", "origin_pool": "Pool Kebon Jeruk", "destination_city": "Bandung", "destination_pool": "Pool Pasteur"}`
-		mockService.On("UpdateRoute", routeID, mock.AnythingOfType("*dto.UpdateRouteRequest")).Return(nil, errors.New("record not found")).Once()
+		mockService.On("UpdateRoute", routeID, mock.AnythingOfType("*dto.UpdateRouteRequest")).Return(nil, apperrors.NewNotFound("Route")).Once()
 
 		req, _ := http.NewRequest(http.MethodPut, "/api/admin/routes/"+routeID, bytes.NewBuffer([]byte(reqBody)))
 		w := httptest.NewRecorder()
@@ -259,7 +260,7 @@ func TestRouteController_UpdateRoute(t *testing.T) {
 		var response map[string]interface{}
 		json.Unmarshal(w.Body.Bytes(), &response)
 		assert.Equal(t, "error", response["status"])
-		assert.Equal(t, "Failed to update route", response["error"])
+		assert.Equal(t, "Internal server error", response["error"])
 
 		mockService.AssertExpectations(t)
 	})
@@ -289,7 +290,7 @@ func TestRouteController_DeleteRoute(t *testing.T) {
 	})
 
 	t.Run("Route Not Found", func(t *testing.T) {
-		mockService.On("DeleteRoute", routeID).Return(errors.New("record not found")).Once()
+		mockService.On("DeleteRoute", routeID).Return(apperrors.NewNotFound("Route")).Once()
 
 		req, _ := http.NewRequest(http.MethodDelete, "/api/admin/routes/"+routeID, nil)
 		w := httptest.NewRecorder()
@@ -319,7 +320,7 @@ func TestRouteController_DeleteRoute(t *testing.T) {
 		var response map[string]interface{}
 		json.Unmarshal(w.Body.Bytes(), &response)
 		assert.Equal(t, "error", response["status"])
-		assert.Equal(t, "Failed to delete route", response["error"])
+		assert.Equal(t, "Internal server error", response["error"])
 
 		mockService.AssertExpectations(t)
 	})

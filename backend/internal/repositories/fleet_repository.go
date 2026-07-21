@@ -8,8 +8,11 @@ import (
 
 type FleetRepository interface {
 	FindAll(page, limit int) ([]models.Fleet, int64, error)
+	FindByID(id string) (*models.Fleet, error)
 	ExistsByPlateNumber(plateNumber string) bool
+	ExistsByPlateNumberExcludingID(plateNumber, excludeID string) bool
 	Create(fleet *models.Fleet) error
+	Update(fleet *models.Fleet) error
 }
 
 type fleetRepository struct {
@@ -47,3 +50,25 @@ func (r *fleetRepository) Create(fleet *models.Fleet) error {
 	}
 	return nil
 }
+
+func (r *fleetRepository) FindByID(id string) (*models.Fleet, error) {
+	var fleet models.Fleet
+	if err := r.db.First(&fleet, "id = ?", id).Error; err != nil {
+		return nil, err
+	}
+	return &fleet, nil
+}
+
+func (r *fleetRepository) ExistsByPlateNumberExcludingID(plateNumber, excludeID string) bool {
+	var count int64
+	r.db.Model(&models.Fleet{}).Where("plate_number = ? AND id != ?", plateNumber, excludeID).Count(&count)
+	return count > 0
+}
+
+func (r *fleetRepository) Update(fleet *models.Fleet) error {
+	if err := r.db.Save(fleet).Error; err != nil {
+		return err
+	}
+	return nil
+}
+

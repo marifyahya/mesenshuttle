@@ -25,7 +25,6 @@ Authorization: Bearer {{login.response.body.data.token}}
 }
 
 ### Update a Route
-# Replace {id} with an actual route ID from the GET response
 PUT http://localhost:8081/api/admin/routes/ed488e3c-cc61-47dd-84d8-b81b35e71890
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.token}}
@@ -38,9 +37,7 @@ Authorization: Bearer {{login.response.body.data.token}}
 }
 
 ### Delete a Route
-# Replace {id} with an actual route ID from the GET response
-# @name id = ed488e3c-cc61-47dd-84d8-b81b35e71890
-DELETE http://localhost:8081/api/admin/routes/{id}
+DELETE http://localhost:8081/api/admin/routes/ed488e3c-cc61-47dd-84d8-b81b35e71890
 Authorization: Bearer {{login.response.body.data.token}}
 
 ### Get All Fleets
@@ -57,4 +54,17 @@ Authorization: Bearer {{login.response.body.data.token}}
   "plate_number": "B 1234 XYZ",
   "type": "Premium",
   "total_seats": 14
+}
+
+### Update a Fleet
+PUT http://localhost:8081/api/admin/fleets/YOUR_FLEET_ID_HERE
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.data.token}}
+
+{
+  "name": "Armada 1 Updated",
+  "plate_number": "B 5678 ABC",
+  "type": "Reguler",
+  "total_seats": 16,
+  "active_status": true
 }

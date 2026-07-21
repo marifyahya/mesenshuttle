@@ -1,12 +1,10 @@
 package controllers
 
 import (
-	"errors"
 	"net/http"
 
 	"mesenshuttle-backend/internal/dto"
 	"mesenshuttle-backend/internal/services"
-	"mesenshuttle-backend/pkg/apperrors"
 	"mesenshuttle-backend/pkg/utils"
 
 	"github.com/gin-gonic/gin"
@@ -29,11 +27,7 @@ func (ac *AuthController) Login(c *gin.Context) {
 
 	token, admin, err := ac.authService.Login(req.Email, req.Password)
 	if err != nil {
-		if errors.Is(err, apperrors.ErrInvalidCredentials) {
-			utils.ErrorResponse(c, http.StatusUnauthorized, err.Error())
-			return
-		}
-		utils.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+		utils.HandleError(c, err)
 		return
 	}
 

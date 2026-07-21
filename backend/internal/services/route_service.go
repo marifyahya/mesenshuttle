@@ -4,6 +4,7 @@ import (
 	"mesenshuttle-backend/internal/dto"
 	"mesenshuttle-backend/internal/models"
 	"mesenshuttle-backend/internal/repositories"
+	"mesenshuttle-backend/pkg/apperrors"
 )
 
 type RouteService interface {
@@ -32,7 +33,7 @@ func (s *routeService) CreateRoute(route *models.Route) error {
 func (s *routeService) UpdateRoute(id string, input *dto.UpdateRouteRequest) (*models.Route, error) {
 	route, err := s.routeRepo.FindByID(id)
 	if err != nil {
-		return nil, err
+		return nil, apperrors.NewNotFound("Route")
 	}
 
 	route.OriginCity = input.OriginCity
@@ -50,7 +51,7 @@ func (s *routeService) UpdateRoute(id string, input *dto.UpdateRouteRequest) (*m
 func (s *routeService) DeleteRoute(id string) error {
 	route, err := s.routeRepo.FindByID(id)
 	if err != nil {
-		return err
+		return apperrors.NewNotFound("Route")
 	}
 
 	if err := s.routeRepo.Delete(route); err != nil {

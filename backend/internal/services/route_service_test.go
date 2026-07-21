@@ -136,7 +136,7 @@ func TestRouteService_UpdateRoute(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Nil(t, route)
-		assert.Equal(t, "record not found", err.Error())
+		assert.Equal(t, "Route not found", err.Error())
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -184,7 +184,7 @@ func TestRouteService_DeleteRoute(t *testing.T) {
 		err := routeService.DeleteRoute(routeID)
 
 		assert.Error(t, err)
-		assert.Equal(t, "record not found", err.Error())
+		assert.Equal(t, "Route not found", err.Error())
 		mockRepo.AssertExpectations(t)
 	})
 

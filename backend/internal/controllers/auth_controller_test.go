@@ -79,7 +79,7 @@ func TestAuthController_Login(t *testing.T) {
 	})
 
 	t.Run("Invalid Credentials", func(t *testing.T) {
-		mockService.On("Login", "wrong@test.com", "wrongpass").Return("", (*models.Admin)(nil), apperrors.ErrInvalidCredentials).Once()
+		mockService.On("Login", "wrong@test.com", "wrongpass").Return("", (*models.Admin)(nil), apperrors.NewUnauthorized("invalid email or password")).Once()
 
 		reqBody := map[string]string{
 			"email":    "wrong@test.com",
