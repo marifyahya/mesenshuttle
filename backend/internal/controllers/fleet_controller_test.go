@@ -44,6 +44,11 @@ func (m *MockFleetService) UpdateFleet(id string, req *dto.UpdateFleetRequest) (
 	return nil, args.Error(1)
 }
 
+func (m *MockFleetService) DeleteFleet(id string) error {
+	args := m.Called(id)
+	return args.Error(0)
+}
+
 func setupFleetRouter(fleetService *MockFleetService) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()
@@ -51,6 +56,7 @@ func setupFleetRouter(fleetService *MockFleetService) *gin.Engine {
 	r.GET("/api/admin/fleets", fleetController.GetFleets)
 	r.POST("/api/admin/fleets", fleetController.CreateFleet)
 	r.PUT("/api/admin/fleets/:id", fleetController.UpdateFleet)
+	r.DELETE("/api/admin/fleets/:id", fleetController.DeleteFleet)
 	return r
 }
 
@@ -237,13 +243,13 @@ func TestFleetController_UpdateFleet(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		id := uuid.New().String()
 		reqBody := `{"name": "Armada 1 Updated", "type": "Premium"}`
-		
+
 		expectedFleet := &models.Fleet{
-			ID: uuid.MustParse(id),
+			ID:   uuid.MustParse(id),
 			Name: "Armada 1 Updated",
 			Type: "Premium",
 		}
-		
+
 		mockService.On("UpdateFleet", id, mock.AnythingOfType("*dto.UpdateFleetRequest")).Return(expectedFleet, nil).Once()
 
 		req, _ := http.NewRequest(http.MethodPut, "/api/admin/fleets/"+id, strings.NewReader(reqBody))
@@ -264,7 +270,7 @@ func TestFleetController_UpdateFleet(t *testing.T) {
 	t.Run("Fleet Not Found", func(t *testing.T) {
 		id := uuid.New().String()
 		reqBody := `{"name": "Armada 1 Updated"}`
-		
+
 		mockService.On("UpdateFleet", id, mock.AnythingOfType("*dto.UpdateFleetRequest")).Return(nil, apperrors.NewNotFound("Fleet")).Once()
 
 		req, _ := http.NewRequest(http.MethodPut, "/api/admin/fleets/"+id, strings.NewReader(reqBody))
@@ -285,7 +291,7 @@ func TestFleetController_UpdateFleet(t *testing.T) {
 	t.Run("Duplicate Plate Number", func(t *testing.T) {
 		id := uuid.New().String()
 		reqBody := `{"plate_number": "B 1234 XYZ"}`
-		
+
 		mockService.On("UpdateFleet", id, mock.AnythingOfType("*dto.UpdateFleetRequest")).Return(nil, apperrors.NewDuplicateField("plate_number")).Once()
 
 		req, _ := http.NewRequest(http.MethodPut, "/api/admin/fleets/"+id, strings.NewReader(reqBody))
@@ -306,7 +312,7 @@ func TestFleetController_UpdateFleet(t *testing.T) {
 	t.Run("Invalid Enum Type", func(t *testing.T) {
 		id := uuid.New().String()
 		reqBody := `{"type": "Hiace"}` // Invalid type, not Reguler or Premium
-		
+
 		req, _ := http.NewRequest(http.MethodPut, "/api/admin/fleets/"+id, strings.NewReader(reqBody))
 		w := httptest.NewRecorder()
 		r.ServeHTTP(w, req)
@@ -323,10 +329,72 @@ func TestFleetController_UpdateFleet(t *testing.T) {
 	t.Run("Service Error", func(t *testing.T) {
 		id := uuid.New().String()
 		reqBody := `{"name": "Armada 1 Updated"}`
-		
+
 		mockService.On("UpdateFleet", id, mock.AnythingOfType("*dto.UpdateFleetRequest")).Return(nil, errors.New("db error")).Once()
 
 		req, _ := http.NewRequest(http.MethodPut, "/api/admin/fleets/"+id, strings.NewReader(reqBody))
+		w := httptest.NewRecorder()
+
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+		var response map[string]interface{}
+		json.Unmarshal(w.Body.Bytes(), &response)
+		assert.Equal(t, "error", response["status"])
+		assert.Equal(t, "Internal server error", response["error"])
+
+		mockService.AssertExpectations(t)
+	})
+}
+
+func TestFleetController_DeleteFleet(t *testing.T) {
+	mockService := new(MockFleetService)
+	r := setupFleetRouter(mockService)
+
+	t.Run("Success", func(t *testing.T) {
+		id := uuid.New().String()
+		mockService.On("DeleteFleet", id).Return(nil).Once()
+
+		req, _ := http.NewRequest(http.MethodDelete, "/api/admin/fleets/"+id, nil)
+		w := httptest.NewRecorder()
+
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var response map[string]interface{}
+		json.Unmarshal(w.Body.Bytes(), &response)
+		assert.Equal(t, "success", response["status"])
+		assert.Equal(t, "Fleet deleted successfully", response["message"])
+
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Fleet Not Found", func(t *testing.T) {
+		id := uuid.New().String()
+		mockService.On("DeleteFleet", id).Return(apperrors.NewNotFound("Fleet")).Once()
+
+		req, _ := http.NewRequest(http.MethodDelete, "/api/admin/fleets/"+id, nil)
+		w := httptest.NewRecorder()
+
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+
+		var response map[string]interface{}
+		json.Unmarshal(w.Body.Bytes(), &response)
+		assert.Equal(t, "error", response["status"])
+		assert.Equal(t, "Fleet not found", response["error"])
+
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Service Error", func(t *testing.T) {
+		id := uuid.New().String()
+		mockService.On("DeleteFleet", id).Return(errors.New("db error")).Once()
+
+		req, _ := http.NewRequest(http.MethodDelete, "/api/admin/fleets/"+id, nil)
 		w := httptest.NewRecorder()
 
 		r.ServeHTTP(w, req)

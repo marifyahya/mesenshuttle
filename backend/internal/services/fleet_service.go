@@ -11,6 +11,7 @@ type FleetService interface {
 	GetAllFleets(page, limit int) ([]models.Fleet, int64, error)
 	CreateFleet(fleet *models.Fleet) error
 	UpdateFleet(id string, req *dto.UpdateFleetRequest) (*models.Fleet, error)
+	DeleteFleet(id string) error
 }
 
 type fleetService struct {
@@ -65,3 +66,15 @@ func (s *fleetService) UpdateFleet(id string, req *dto.UpdateFleetRequest) (*mod
 	return fleet, nil
 }
 
+func (s *fleetService) DeleteFleet(id string) error {
+	fleet, err := s.fleetRepo.FindByID(id)
+	if err != nil {
+		return apperrors.NewNotFound("Fleet")
+	}
+
+	if err := s.fleetRepo.Delete(fleet); err != nil {
+		return err
+	}
+
+	return nil
+}

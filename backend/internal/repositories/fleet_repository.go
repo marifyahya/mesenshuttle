@@ -13,6 +13,7 @@ type FleetRepository interface {
 	ExistsByPlateNumberExcludingID(plateNumber, excludeID string) bool
 	Create(fleet *models.Fleet) error
 	Update(fleet *models.Fleet) error
+	Delete(fleet *models.Fleet) error
 }
 
 type fleetRepository struct {
@@ -72,3 +73,9 @@ func (r *fleetRepository) Update(fleet *models.Fleet) error {
 	return nil
 }
 
+func (r *fleetRepository) Delete(fleet *models.Fleet) error {
+	if err := r.db.Delete(fleet).Error; err != nil {
+		return err
+	}
+	return nil
+}

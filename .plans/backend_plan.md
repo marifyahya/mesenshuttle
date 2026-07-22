@@ -132,6 +132,7 @@ sequenceDiagram
 - **`GET /api/admin/fleets`** : Get list of fleets (Protected by JWT).
 - **`POST /api/admin/fleets`** : Add a new fleet (Protected by JWT).
 - **`PUT /api/admin/fleets/:id`** : Update a fleet (Protected by JWT).
+- **`DELETE /api/admin/fleets/:id`** : Delete a fleet (Protected by JWT).
 - **`GET /api/admin/schedules`** : Get departure schedules (Protected by JWT).
 - **`POST /api/admin/schedules`** : Add a new schedule (Protected by JWT).
 
@@ -165,7 +166,7 @@ sequenceDiagram
 - `[x]` As a FE, I want to have endpoint to get list of Fleets (`GET /api/admin/fleets`).
 - `[x]` As a FE, I want to have endpoint to create a new Fleet (`POST /api/admin/fleets`).
 - `[x]` As a FE, I want to have endpoint to update a Fleet (`PUT /api/admin/fleets/:id`).
-- `[ ]` As a FE, I want to have endpoint to delete a Fleet (`DELETE /api/admin/fleets/:id`).
+- `[x]` As a FE, I want to have endpoint to delete a Fleet (`DELETE /api/admin/fleets/:id`).
 - `[ ]` As a FE, I want to have endpoint to get list of Schedules (`GET /api/admin/schedules`).
 - `[ ]` As a FE, I want to have endpoint to create a new Schedule (`POST /api/admin/schedules`).
 - `[ ]` As a FE, I want to have endpoint to update a Schedule (`PUT /api/admin/schedules/:id`).

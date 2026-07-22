@@ -57,7 +57,7 @@ Authorization: Bearer {{login.response.body.data.token}}
 }
 
 ### Update a Fleet
-PUT http://localhost:8081/api/admin/fleets/YOUR_FLEET_ID_HERE
+PUT http://localhost:8081/api/admin/fleets/9469132c-2dfa-4698-a23f-bc2a8bda933e
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.token}}
 
@@ -68,3 +68,7 @@ Authorization: Bearer {{login.response.body.data.token}}
   "total_seats": 16,
   "active_status": true
 }
+
+### Delete a Fleet
+DELETE http://localhost:8081/api/admin/fleets/9469132c-2dfa-4698-a23f-bc2a8bda933e
+Authorization: Bearer {{login.response.body.data.token}}

@@ -26,4 +26,5 @@ func (m *FleetModule) RegisterRoutes(public *gin.RouterGroup, protected *gin.Rou
 	fleetGroup.GET("", m.controller.GetFleets)
 	fleetGroup.POST("", m.controller.CreateFleet)
 	fleetGroup.PUT("/:id", m.controller.UpdateFleet)
+	fleetGroup.DELETE("/:id", m.controller.DeleteFleet)
 }

@@ -85,3 +85,15 @@ func (c *FleetController) UpdateFleet(ctx *gin.Context) {
 
 	utils.SuccessResponse(ctx, http.StatusOK, "Fleet updated successfully", fleet)
 }
+
+func (c *FleetController) DeleteFleet(ctx *gin.Context) {
+	id := ctx.Param("id")
+
+	err := c.fleetService.DeleteFleet(id)
+	if err != nil {
+		utils.HandleError(ctx, err)
+		return
+	}
+
+	utils.SuccessResponse(ctx, http.StatusOK, "Fleet deleted successfully", nil)
+}
