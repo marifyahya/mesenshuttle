@@ -72,3 +72,7 @@ Authorization: Bearer {{login.response.body.data.token}}
 ### Delete a Fleet
 DELETE http://localhost:8081/api/admin/fleets/9469132c-2dfa-4698-a23f-bc2a8bda933e
 Authorization: Bearer {{login.response.body.data.token}}
+
+### Get All Schedules
+GET http://localhost:8081/api/admin/schedules?page=1&limit=10
+Authorization: Bearer {{login.response.body.data.token}}
